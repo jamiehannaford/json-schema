@@ -1,0 +1,451 @@
+{
+  "name": "openstack.compute",
+  "version": 2.0,
+  "title": "Compute service for OpenStack",
+  "codename": "Nova",
+  "docLink": "",
+  "catalog": {
+    "name": "",
+    "type": ""
+  },
+  "definitions": {
+    "id": {
+      "location": "path",
+      "description": "The UUID of the server",
+      "type": "string"
+    },
+    "iPv6": {
+      "type": "string",
+      "description": "The public IPv6 address of the server",
+      "sentAs": "accessIPv6",
+      "format": "ipv6"
+    },
+    "iPv4": {
+      "type": "string",
+      "description": "The public IPv4 address of the server",
+      "sentAs": "accessIPv4",
+      "format": "ipv4"
+    },
+    "serverStatus": {
+      "type": "string",
+      "description": "The status of the VM",
+      "enum": [
+        "ACTIVE",
+        "BUILD",
+        "DELETED",
+        "ERROR",
+        "HARD_REBOOT",
+        "PASSWORD",
+        "REBOOT",
+        "REBUILD",
+        "RESCUE",
+        "RESIZE",
+        "REVERT_RESIZE",
+        "SHUTOFF",
+        "SUSPENDED",
+        "UNKNOWN",
+        "VERIFY_RESIZE"
+      ]
+    }
+  },
+  "schemas": {
+    "ServerList": {
+      "id": "openstack.compute.serverList",
+      "type": "array",
+      "description": "A collection of Server resources",
+      "items": {
+        "$ref": "Server"
+      }
+    },
+    "Generic": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "Server": {
+      "properties": {
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rel": {
+                "type": "string"
+              },
+              "href": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "User-defined, arbitrary key/value pairs that help describe a server",
+          "additionalProperties": true
+        },
+        "addresses": {
+          "type": "object",
+          "description": "",
+          "properties": {
+            "public": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string"
+                  },
+                  "addr": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "private": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string"
+                  },
+                  "addr": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "flavor": {
+          "properties": {
+            "links": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "rel": {
+                    "type": "string"
+                  },
+                  "href": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "description": "The hardware flavor for this server"
+        },
+        "image": {
+          "properties": {
+            "links": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "rel": {
+                    "type": "string"
+                  },
+                  "href": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "description": "The OS image for this server"
+        },
+        "progress": {
+          "type": "numeric",
+          "description": "An indication of server build progress"
+        },
+        "status": {
+          "$ref": "#/definitions/serverStatus"
+        },
+        "iPv6": {
+          "type": "string",
+          "description": "The public IPv6 address of the server",
+          "sentAs": "accessIPv6",
+          "format": "ipv6"
+        },
+        "iPv4": {
+          "type": "string",
+          "description": "The public IPv4 address of the server",
+          "sentAs": "accessIPv4",
+          "format": "ipv4"
+        },
+        "hostId": {
+          "type": "string",
+          "description": "The ID of the host this VM runs on"
+        },
+        "created": {
+          "type": "string",
+          "description": "The time stamp for the creation date",
+          "format": "date-time"
+        },
+        "updated": {
+          "type": "string",
+          "description": "The time stamp for the last update",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the server"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The user ID this server belongs to",
+          "sentAs": "user_id"
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "The tenant ID this server is associated to",
+          "sentAs": "tenant_id"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique idenfifier for this server"
+        }
+      },
+      "description": "A Nova instance",
+      "id": "openstack.compute.server",
+      "type": "object"
+    }
+  },
+  "resources": {
+    "servers": {
+      "list": {
+        "id": "openstack.compute.list",
+        "path": "servers",
+        "httpMethod": "GET",
+        "description": "Return a list of servers",
+        "response": {
+          "$ref": "ServersList"
+        },
+        "parameters": {
+          "image": {
+            "type": "string",
+            "description": "The image reference specified as an ID or full URL.",
+            "location": "query"
+          },
+          "flavor": {
+            "type": "string",
+            "description": "The flavor reference specified as an ID or full URL.",
+            "location": "query"
+          },
+          "server": {
+            "type": "string",
+            "description": "The server name or UUID.",
+            "location": "query"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/serverStatus"
+              },
+              {
+                "location": "query"
+              }
+            ]
+          },
+          "marker": {
+            "type": "string",
+            "description": "The ID of the last server in the previous list",
+            "location": "query"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "The page size",
+            "location": "query"
+          },
+          "changes-since": {
+            "type": "string",
+            "description": "Only return resources that have been changed since a certain datetime",
+            "location": "query"
+          }
+        },
+        "httpErrors": {
+          "404": {
+            "message": "Servers not found"
+          }
+        }
+      },
+      "get": {
+        "id": "openstack.compute.get",
+        "path": "servers/{id}",
+        "httpMethod": "GET",
+        "description": "Get a server resource",
+        "response": {
+          "$ref": "Server"
+        },
+        "parameters": {
+          "id": {
+            "type": "string",
+            "description": "The server UUID",
+            "required": true,
+            "location": "path"
+          }
+        },
+        "httpErrors": {
+          "404": {
+            "message": "Server not found"
+          }
+        }
+      },
+      "create": {
+        "id": "openstack.compute.create",
+        "path": "servers",
+        "httpMethod": "POST",
+        "description": "This operation asynchronously provisions a new server",
+        "response": {
+          "allOf": [
+            {
+              "$ref": "Generic"
+            },
+            {
+              "dataWrapper": "server"
+            }
+          ]
+        },
+        "parameters": {
+          "image": {
+            "type": "string",
+            "description": "The image reference specified as an ID or full URL.",
+            "sentAs": "imageRef",
+            "location": "body"
+          },
+          "flavor": {
+            "type": "string",
+            "description": "The flavor reference specified as an ID or full URL.",
+            "sentAs": "flavorRef",
+            "location": "body"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "location": "body"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the server",
+            "location": "body"
+          },
+          "personality": {
+            "type": "array",
+            "location": "body",
+            "items": {
+              "type": "object",
+              "properties": {
+                "contents": {
+                  "type": "string",
+                  "description": "Content payload"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Path of file"
+                }
+              }
+            }
+          },
+          "networks": {
+            "type": "array",
+            "location": "body",
+            "items": {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "description": "The network UUID"
+                },
+                "fixedIp": {
+                  "sentAs": "fixed_as",
+                  "description": "The network IP"
+                }
+              }
+            }
+          }
+        },
+        "httpErrors": {
+        }
+      },
+      "update": {
+        "id": "openstack.compute.update",
+        "path": "servers/{id}",
+        "httpMethod": "PUT",
+        "description": "This operation enables you to update the editable attributes of a specified server.",
+        "response": {
+          "$ref": "Server"
+        },
+        "properties": {
+          "id": {
+            "$ref": "#/definitions/id"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the server",
+            "location": "body"
+          },
+          "iPv4": {
+            "$ref": "#/definitions/iPv4"
+          },
+          "iPv6": {
+            "$ref": "#/definitions/iPv6"
+          }
+        }
+      },
+      "delete": {
+        "id": "openstack.compute.delete",
+        "path": "servers/{id}",
+        "httpMethod": "DELETE",
+        "description": "Delete a server",
+        "response": "This operation deletes a specified cloud server instance from the system.",
+        "parameters": {
+          "id": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "httpErrors": {
+          "409": "Build in progress"
+        }
+      }
+    },
+    "addresses": {
+      "list": {
+      }
+    },
+    "flavors": {
+      "list": {
+      },
+      "get": {
+      }
+    },
+    "images": {
+      "list": {
+      },
+      "get": {
+      },
+      "delete": {
+      }
+    },
+    "metadata": {
+      "deleteItem": {
+      },
+      "createItem": {
+      },
+      "get": {
+      },
+      "list": {
+      },
+      "update": {
+      },
+      "create": {
+      }
+    }
+  }
+}
