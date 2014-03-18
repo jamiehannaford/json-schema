@@ -4,19 +4,21 @@ namespace JsonSchema\Exception;
 
 class InvalidTypeException extends \InvalidArgumentException
 {
-    public function __construct($name, $value, $requiredType, $type = null)
+    public static function factory($name, $value, $requiredType)
     {
-        $type = $type ?: gettype($value);
+        $type = gettype($value);
 
         $message = sprintf(
-            "\"%s\" must be a %s, you provided %s %s",
-            $name, $requiredType, $this->formArticle($type), $type
+            "\"%s\" must be %s %s, you provided %s %s",
+            $name,
+            self::formArticle($requiredType), $requiredType,
+            self::formArticle($type), $type
         );
 
-        parent::__construct($message);
+        return new self($message);
     }
 
-    private function formArticle($noun)
+    private static function formArticle($noun)
     {
         return in_array($noun[0], ['a','e','i','o','u']) ? 'an' : 'a';
     }

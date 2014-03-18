@@ -3,6 +3,7 @@
 namespace JsonSchema\Schema;
 
 use JsonSchema\Exception\InvalidTypeException;
+use Prophecy\Exception\InvalidArgumentException;
 
 abstract class AbstractSchema implements SchemaInterface
 {
@@ -16,10 +17,20 @@ abstract class AbstractSchema implements SchemaInterface
         'exclusiveMaximum' => 'boolean',
         'minimum'          => 'integer',
         'exclusiveMinimum' => 'boolean',
-        'minLength'        => 'setMinLength',
-        'maxLength'        => 'setMaxLength',
+        'minLength'        => 'naturalNumber',
+        'maxLength'        => 'naturalNumber',
         'pattern'          => 'setPattern',
-        'additionalItems'  => 'setAdditionalItems'
+        'additionalItems'  => 'setAdditionalItems',
+        'items'            => 'setItems',
+        'maxItems'         => 'naturalNumber',
+        'minItems'         => 'naturalNumber',
+        'uniqueItems'      => 'boolean',
+        'maxProperties'    => 'naturalNumber',
+        'minProperties'    => 'naturalNumber',
+        'required'         => 'setRequired',
+        'additionalProperties' => 'setAdditionalProperties',
+        'properties'           => 'setProperties',
+        'dependencies'     => 'setDependencies'
     ];
 
     private function setValue($offset, $value)
@@ -52,7 +63,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function offsetExists($offset)
     {
-        return array_key_exists($offset, $this->data);
+        return !empty($this->data) && array_key_exists($offset, $this->data);
     }
 
     public function offsetUnset($offset)
@@ -68,7 +79,7 @@ abstract class AbstractSchema implements SchemaInterface
     private function checkStringValidity($key, $value)
     {
         if (is_array($value) || is_object($value) || is_resource($value)) {
-            throw new InvalidTypeException($key, $value, "string");
+            throw InvalidTypeException::factory($key, $value, "string");
         }
     }
 
@@ -82,7 +93,7 @@ abstract class AbstractSchema implements SchemaInterface
     private function setItemAsInteger($key, $value, $min = false, $max = false)
     {
         if (!is_numeric($value)) {
-            throw new InvalidTypeException($key, $value, "numeric value");
+            throw InvalidTypeException::factory($key, $value, "numeric value");
         }
 
         if ($min !== false && $value <= $min) {
@@ -111,19 +122,19 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setValue($key, (bool) $value);
     }
 
+    private function setItemAsNaturalNumber($key, $value)
+    {
+        $this->setItemAsInteger($key, $value, -1);
+    }
+
+    private function setItemAsArray($key, $value)
+    {
+        $this->setValue($key, (array) $value);
+    }
+
     public function setMultipleOf($value)
     {
         $this->setItemAsInteger('multipleOf', $value, 0);
-    }
-
-    public function setMinLength($value)
-    {
-        $this->setItemAsInteger('minLength', $value, -1);
-    }
-
-    public function setMaxLength($value)
-    {
-        $this->setItemAsInteger('maxLength', $value, -1);
     }
 
     public function setPattern($value)
@@ -149,5 +160,102 @@ abstract class AbstractSchema implements SchemaInterface
         }
 
         $this->setValue('additionalItems', $value);
+    }
+
+    public function setItems($value)
+    {
+        if (!is_object($value) && !is_array($value)) {
+            throw InvalidTypeException::factory('items', $value, 'object or array');
+        }
+
+        $this->setValue('items', $value);
+    }
+
+    private function validateUniqueStringArray(&$array)
+    {
+        $errorTypes = [];
+
+        // Prohibit non-string values
+        foreach ($array as $key => $value) {
+            if (!is_string($value)) {
+                unset($array[$key]);
+                $errorTypes[] = gettype($value);
+            }
+        }
+
+        // Ensure values are unique and reset keys
+        $array = array_values(array_unique($array));
+
+        if (count($errorTypes)) {
+            throw new InvalidArgumentException(sprintf(
+                "The array specified is invalid. It must contain a list of "
+                . "unique strings. You provided these erroneous types: %s",
+                implode(', ', array_unique($errorTypes))
+            ));
+        }
+    }
+
+    public function setRequired($array)
+    {
+        if (!is_array($array)) {
+            throw InvalidTypeException::factory('required', $array, 'array');
+        }
+
+        $this->validateUniqueStringArray($array);
+
+        $this->setItemAsArray('required', $array);
+    }
+
+    public function setAdditionalProperties($value)
+    {
+        if (is_object($value)) {
+            $this->validateSchema($value);
+        } else {
+            $value = (bool) $value;
+        }
+
+        $this->setValue('additionalProperties', $value);
+    }
+
+    public function setProperties($value)
+    {
+        if (!is_object($value) && !is_array($value)) {
+            throw InvalidTypeException::factory('properties', $value, 'object or array');
+        }
+
+        $this->setValue('properties', $value);
+    }
+
+    private function isValidSchema($schema)
+    {
+        return true;
+    }
+
+    private function validateSchema($schema)
+    {
+        if (!$this->isValidSchema($schema)) {
+            throw new InvalidTypeException('Schema is invalid');
+        }
+    }
+
+    public function setDependencies($array)
+    {
+        if (!is_object($array)) {
+            throw InvalidTypeException::factory('dependencies', $array, 'object');
+        }
+
+        foreach ($array as $key => &$value) {
+            if (is_object($value)) {
+                $this->validateSchema($value);
+            } elseif (is_array($value)) {
+                $this->validateUniqueStringArray($value);
+            } else {
+                throw new InvalidTypeException(sprintf(
+                    "\"dependencies\" should be an object whose values are either "
+                    . "objects or arrays. One of the values you provided was a %s",
+                    gettype($value)
+                ));
+            }
+        }
     }
 }

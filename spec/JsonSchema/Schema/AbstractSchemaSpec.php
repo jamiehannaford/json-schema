@@ -2,13 +2,51 @@
 
 namespace spec\JsonSchema\Schema;
 
+use JsonSchema\Exception\InvalidTypeException;
 use JsonSchema\Schema\AbstractSchema;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Prophecy\Exception\InvalidArgumentException;
 
 class AbstractSchemaSpec extends ObjectBehavior
 {
     const RANDOM_STRING = 'Foo';
+    const TYPE_EXCEPTION = 'JsonSchema\Exception\InvalidTypeException';
+
+    /**
+     * Test that a number is greater than a minimum
+     *
+     * @param $keyword Name of keyword
+     * @param $min     Integer the value must be greater than
+     */
+    private function testNumberIsGreaterThan($keyword, $min = 0)
+    {
+        // Make a random int less than the given minimum
+        $wrongInt = ($min - rand(1, 10));
+
+        // Test that out of bounds integers are caught
+        $exception = new \InvalidArgumentException(sprintf(
+            "\"%s\" must be a positive integer greater than %d, you provided %d",
+            $keyword, $min, $wrongInt
+        ));
+        $this->shouldThrow($exception)->duringOffsetSet($keyword, $wrongInt);
+    }
+
+    /**
+     * Test that incorrect data types are caught
+     *
+     * @param $keyword Name of keyword
+     */
+    private function testNonNumericTypeThrowsException($keyword)
+    {
+        $wrongTypes = [
+            [], new \stdClass, false, fopen('php://temp', 'r+')
+        ];
+
+        $wrongVal = $wrongTypes[rand(0, count($wrongTypes) - 1)];
+        $exception = InvalidTypeException::factory($keyword, $wrongVal, 'numeric value');
+        $this->shouldThrow($exception)->duringOffsetSet($keyword, $wrongVal);
+    }
 
     function let()
     {
@@ -62,22 +100,15 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->offsetGet('multipleOf')->shouldReturn(50);
     }
 
-    function it_should_throw_exception_when_setting_multipleOf_without_natural_number()
+    function it_should_validate_multipleOf_keyword_as_natural_number()
     {
-        $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('multipleOf', []);
-        $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('multipleOf', 0);
-
-        $exception = new \InvalidArgumentException('"multipleOf" must be a positive integer greater than 0, you provided -1');
-        $this->shouldThrow($exception)->duringOffsetSet('multipleOf', -1);
-
-        $exception = new \InvalidArgumentException('"multipleOf" must be a numeric value, you provided a string');
-        $this->shouldThrow($exception)->duringOffsetSet('multipleOf', 'string');
+        $this->testNonNumericTypeThrowsException('multipleOf');
+        $this->testNumberIsGreaterThan('multipleOf');
     }
 
-    function it_should_throw_exception_when_setting_maximum_without_numeric_type()
+    function it_should_validate_maximum_keyword_as_numeric_type()
     {
-        $exception = new \InvalidArgumentException('"maximum" must be a numeric value, you provided a string');
-        $this->shouldThrow($exception)->duringOffsetSet('maximum', 'foo');
+        $this->testNonNumericTypeThrowsException('maximum');
     }
 
     function it_should_support_exclusiveMaximum_keyword()
@@ -89,10 +120,9 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->offsetGet('exclusiveMaximum')->shouldReturn(false);
     }
 
-    function it_should_throw_exception_when_setting_minimum_without_numeric_type()
+    function it_should_validate_minimum_keyword_as_numeric_type()
     {
-        $exception = new \InvalidArgumentException('"minimum" must be a numeric value, you provided a string');
-        $this->shouldThrow($exception)->duringOffsetSet('minimum', 'foo');
+        $this->testNonNumericTypeThrowsException('minimum');
     }
 
     function it_should_support_exclusiveMinimum_keyword()
@@ -106,24 +136,14 @@ class AbstractSchemaSpec extends ObjectBehavior
 
     function it_should_throw_exception_when_setting_minLength_without_natural_number_or_zero()
     {
-        $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('minLength', []);
-
-        $exception = new \InvalidArgumentException('"minLength" must be a positive integer greater than -1, you provided -1');
-        $this->shouldThrow($exception)->duringOffsetSet('minLength', -1);
-
-        $exception = new \InvalidArgumentException('"minLength" must be a numeric value, you provided a string');
-        $this->shouldThrow($exception)->duringOffsetSet('minLength', 'string');
+        $this->testNonNumericTypeThrowsException('minLength');
+        $this->testNumberIsGreaterThan('minLength', -1);
     }
 
     function it_should_throw_exception_when_setting_maxLength_without_natural_number_or_zero()
     {
-        $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('maxLength', []);
-
-        $exception = new \InvalidArgumentException('"maxLength" must be a positive integer greater than -1, you provided -1');
-        $this->shouldThrow($exception)->duringOffsetSet('maxLength', -1);
-
-        $exception = new \InvalidArgumentException('"maxLength" must be a numeric value, you provided a string');
-        $this->shouldThrow($exception)->duringOffsetSet('maxLength', 'string');
+        $this->testNonNumericTypeThrowsException('maxLength');
+        $this->testNumberIsGreaterThan('maxLength', -1);
     }
 
     function it_should_throw_exception_if_casting_pattern_to_string_is_impossible()
@@ -151,12 +171,132 @@ class AbstractSchemaSpec extends ObjectBehavior
 
     function it_should_validate_the_schema_of_additionalItems_if_object_provided()
     {
-
+        // @todo Implement schema validation
     }
 
     function it_should_throw_exception_if_items_are_not_an_object_or_array()
     {
+        $exception = new InvalidTypeException('"items" must be an object or array, you provided a string');
+        $this->shouldThrow($exception)->duringOffsetSet('items', 'foo');
 
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('items', true);
+    }
+
+    function it_should_throw_exception_when_setting_maxItems_without_natural_number_or_zero()
+    {
+        $this->testNonNumericTypeThrowsException('maxItems');
+        $this->testNumberIsGreaterThan('maxItems', -1);
+    }
+
+    function it_should_throw_exception_when_setting_minItems_without_natural_number_or_zero()
+    {
+        $this->testNonNumericTypeThrowsException('minItems');
+        $this->testNumberIsGreaterThan('minItems', -1);
+    }
+
+    function it_should_support_uniqueItems_only_as_boolean()
+    {
+        $this->offsetSet('uniqueItems', true);
+        $this->offsetGet('uniqueItems')->shouldBe(true);
+
+        $this->offsetSet('uniqueItems', []);
+        $this->offsetGet('uniqueItems')->shouldBe(false);
+    }
+
+    function it_should_throw_exception_when_setting_maxProperties_without_natural_number_or_zero()
+    {
+        $this->testNonNumericTypeThrowsException('maxProperties');
+        $this->testNumberIsGreaterThan('maxProperties', -1);
+    }
+
+    function it_should_throw_exception_when_setting_minProperties_without_natural_number_or_zero()
+    {
+        $this->testNonNumericTypeThrowsException('minProperties');
+        $this->testNumberIsGreaterThan('minProperties', -1);
+    }
+
+    function it_should_support_required_keyword_as_array_only()
+    {
+        $value = new \stdClass();
+        $exception = InvalidTypeException::factory('required', $value, 'array');
+        $this->shouldThrow($exception)->duringOffsetSet('required', $value);
+    }
+
+    function it_should_force_required_array_vals_to_be_strings_and_unique()
+    {
+        $stream = fopen('php://temp', 'r+');
+        $invalid = [
+            'foo', 'bar', [], $stream, 'foo', 'baz'
+        ];
+
+        $this->shouldThrow('InvalidArgumentException')->duringOffsetSet('required', $invalid);
+        fclose($stream);
+
+        $valid = ['foo', 'bar', 'baz', 'bar'];
+        $this->offsetSet('required', $valid);
+        $this->offsetGet('required')->shouldReturn(['foo', 'bar', 'baz']);
+    }
+
+    function it_should_only_let_additionalProperties_be_a_bool_or_schema()
+    {
+        $this->offsetSet('additionalProperties', (object) []);
+        $this->offsetGet('additionalProperties')->shouldBeObject();
+
+        $this->offsetSet('additionalProperties', true);
+        $this->offsetGet('additionalProperties')->shouldBe(true);
+
+        $this->offsetSet('additionalProperties', 0);
+        $this->offsetGet('additionalProperties')->shouldBe(false);
+    }
+
+    function it_should_validate_the_schema_of_additionalProperties_if_object_provided()
+    {
+        // @todo Implement schema validation
+    }
+
+    function it_should_throw_exception_if_properties_are_not_an_object_or_array()
+    {
+        $exception = new InvalidTypeException('"properties" must be an object or array, you provided a string');
+        $this->shouldThrow($exception)->duringOffsetSet('properties', 'foo');
+
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('properties', true);
+    }
+
+    function it_should_throw_exception_if_dependencies_is_not_an_object()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('dependencies', []);
+    }
+
+    function it_should_only_let_dependencies_be_an_object_whose_values_are_objects_or_arrays()
+    {
+        $exception = new \InvalidArgumentException(sprintf(
+            "\"dependencies\" should be an object whose values are either "
+            . "objects or arrays. One of the values you provided was a boolean"
+        ));
+
+        $value = (object) [true];
+        $this->shouldThrow($exception)->duringOffsetSet('dependencies', $value);
+    }
+
+    function it_should_throw_exception_if_object_in_dependencies_object_is_invalid_schema()
+    {
+        // @todo Implement schema validation
+    }
+
+    function it_should_throw_exception_if_array_in_dependencies_object_is_invalid()
+    {
+        $value = (object) [
+            [
+                'foo', 'bar', [], 'baz', new \stdClass()
+            ]
+        ];
+
+        $exception = new InvalidArgumentException(
+            'The array specified is invalid. It must contain a list of unique '
+                . 'strings. You provided these erroneous types: array, object'
+        );
+
+        $this->shouldThrow($exception)->duringOffsetSet('dependencies', $value);
     }
 }
 
