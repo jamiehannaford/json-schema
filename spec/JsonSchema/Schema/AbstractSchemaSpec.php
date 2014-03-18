@@ -56,13 +56,13 @@ class AbstractSchemaSpec extends ObjectBehavior
         fclose($resource);
     }
 
-    function it_should_support_multiple_of_keyword()
+    function it_should_support_multipleOf_keyword()
     {
         $this->offsetSet('multipleOf', 50);
         $this->offsetGet('multipleOf')->shouldReturn(50);
     }
 
-    function it_should_throw_exception_when_setting_multiple_of_without_natural_number()
+    function it_should_throw_exception_when_setting_multipleOf_without_natural_number()
     {
         $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('multipleOf', []);
         $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('multipleOf', 0);
@@ -80,7 +80,7 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->shouldThrow($exception)->duringOffsetSet('maximum', 'foo');
     }
 
-    function it_should_support_exclusive_maximum_keyword()
+    function it_should_support_exclusiveMaximum_keyword()
     {
         $this->offsetSet('exclusiveMaximum', true);
         $this->offsetGet('exclusiveMaximum')->shouldReturn(true);
@@ -95,7 +95,7 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->shouldThrow($exception)->duringOffsetSet('minimum', 'foo');
     }
 
-    function it_should_support_exclusive_minimum_keyword()
+    function it_should_support_exclusiveMinimum_keyword()
     {
         $this->offsetSet('exclusiveMinimum', true);
         $this->offsetGet('exclusiveMinimum')->shouldReturn(true);
@@ -104,7 +104,7 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->offsetGet('exclusiveMinimum')->shouldReturn(false);
     }
 
-    function it_should_throw_exception_when_setting_minlength_without_natural_number_or_zero()
+    function it_should_throw_exception_when_setting_minLength_without_natural_number_or_zero()
     {
         $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('minLength', []);
 
@@ -115,7 +115,7 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->shouldThrow($exception)->duringOffsetSet('minLength', 'string');
     }
 
-    function it_should_throw_exception_when_setting_maxlength_without_natural_number_or_zero()
+    function it_should_throw_exception_when_setting_maxLength_without_natural_number_or_zero()
     {
         $this->shouldThrow('\InvalidArgumentException')->duringOffsetSet('maxLength', []);
 
