@@ -156,7 +156,7 @@ class AbstractSchemaSpec extends ObjectBehavior
 
     function it_should_throw_exception_if_items_are_not_an_object_or_array()
     {
-        
+
     }
 }
 
