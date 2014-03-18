@@ -298,6 +298,66 @@ class AbstractSchemaSpec extends ObjectBehavior
 
         $this->shouldThrow($exception)->duringOffsetSet('dependencies', $value);
     }
+
+    function it_should_throw_exception_if_enum_is_not_array()
+    {
+        $this->shouldThrow('InvalidArgumentException')->duringOffsetSet('enum', 'foo');
+    }
+
+    function it_should_allow_enum_any_values_within_its_array()
+    {
+        $array = ['foo', [], new \stdClass(), 10];
+        $this->offsetSet('enum', $array);
+        $this->offsetGet('enum')->shouldReturn($array);
+    }
+
+    function it_should_support_type_as_either_a_string_or_array()
+    {
+        $value = ['foo', 'bar', 'baz'];
+        $this->offsetSet('type', $value);
+        $this->offsetGet('type')->shouldReturn($value);
+
+        $value = 'foo';
+        $this->offsetSet('type', $value);
+        $this->offsetGet('type')->shouldReturn($value);
+    }
+
+    function it_should_throw_exception_when_type_is_not_string_or_array()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('type', 1);
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('type', new \stdClass());
+    }
+
+    function it_should_throw_exception_when_anyOf_is_not_array()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('anyOf', new \stdClass());
+    }
+
+    function it_should_throw_exception_when_oneOf_is_not_array()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('oneOf', new \stdClass());
+    }
+
+    function it_should_throw_exception_when_not_is_not_valid_schema()
+    {
+        // @todo Implement schema validation
+    }
+
+    function it_should_throw_exception_when_definitions_is_not_an_object()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('definitions', []);
+    }
+
+    function it_should_throw_exception_when_definitions_object_does_not_contain_valid_schema()
+    {
+        // @todo Implement schema validation
+    }
+
+    function it_should_throw_exception_if_format_not_an_approved_string()
+    {
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('format', []);
+        $this->shouldThrow(self::TYPE_EXCEPTION)->duringOffsetSet('format', 'foo');
+    }
 }
 
 class TestableAbstractSchema extends AbstractSchema

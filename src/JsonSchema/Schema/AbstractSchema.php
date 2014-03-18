@@ -30,7 +30,17 @@ abstract class AbstractSchema implements SchemaInterface
         'required'         => 'setRequired',
         'additionalProperties' => 'setAdditionalProperties',
         'properties'           => 'setProperties',
-        'dependencies'     => 'setDependencies'
+        'dependencies'         => 'setDependencies',
+        'enum'             => 'setEnum',
+        'type'             => 'setType',
+        'anyOf'            => 'setAnyOf',
+        'oneOf'            => 'setOneOf',
+        'definitions'      => 'setDefinitions',
+        'format'           => 'setFormat'
+    ];
+
+    private $approvedFormats = [
+        'date-time', 'email', 'hostname', 'ipv4', 'ipv6', 'uri'
     ];
 
     private function setValue($offset, $value)
@@ -195,12 +205,16 @@ abstract class AbstractSchema implements SchemaInterface
         }
     }
 
+    private function validateArrayType($value, $key)
+    {
+        if (!is_array($value)) {
+            throw InvalidTypeException::factory($key, $value, 'array');
+        }
+    }
+
     public function setRequired($array)
     {
-        if (!is_array($array)) {
-            throw InvalidTypeException::factory('required', $array, 'array');
-        }
-
+        $this->validateArrayType($array, 'required');
         $this->validateUniqueStringArray($array);
 
         $this->setItemAsArray('required', $array);
@@ -257,5 +271,79 @@ abstract class AbstractSchema implements SchemaInterface
                 ));
             }
         }
+    }
+
+    public function setEnum($array)
+    {
+        $this->validateArrayType($array, 'enum');
+
+        $this->setValue('enum', $array);
+    }
+
+    public function setType($value)
+    {
+        if (!is_string($value) && !is_array($value)) {
+            throw InvalidTypeException::factory('type', $value, 'string or array');
+        }
+
+        $this->setValue('type', $value);
+    }
+
+    public function setAnyOf($array)
+    {
+        $this->validateArrayType($array, 'anyOf');
+
+        foreach ($array as $key => $value) {
+            if (is_object($value)) {
+                $this->validateSchema($value);
+            } else {
+                throw new InvalidTypeException(sprintf(
+                    "\"anyOf\" should be an array whose values are valid schema "
+                    . "objects. One of the values you provided was a %s",
+                    gettype($value)
+                ));
+            }
+        }
+
+        $this->setValue('anyOf', $array);
+    }
+
+    public function setOneOf($array)
+    {
+        $this->validateArrayType($array, 'oneOf');
+
+        foreach ($array as $value) {
+            if (is_object($value)) {
+                $this->validateSchema($value);
+            } else {
+                throw new InvalidTypeException(sprintf(
+                    "\"oneOf\" should be an array whose values are valid schema "
+                    . "objects. One of the values you provided was a %s",
+                    gettype($value)
+                ));
+            }
+        }
+
+        $this->setValue('oneOf', $array);
+    }
+
+    public function setDefinitions($value)
+    {
+        if (!is_object($value)) {
+            throw InvalidTypeException::factory('definitions', $value, 'object');
+        }
+
+        $this->setValue('definitions', $value);
+    }
+
+    public function setFormat($value)
+    {
+        if (!in_array($value, $this->approvedFormats)) {
+            throw InvalidTypeException::factory('format', $value, sprintf(
+                "one of [%s]", implode(',', $this->approvedFormats)
+            ));
+        }
+
+        $this->setValue('format', $value);
     }
 }
