@@ -71,6 +71,6 @@ class StringConstraintSpec extends ObjectBehavior
         $this->setValue(['Foo']);
         $this->validate();
 
-        $this->getErrorHandler()->getErrorCount()->shouldReturn(1);
+        $this->getErrorCount()->shouldReturn(1);
     }
 }

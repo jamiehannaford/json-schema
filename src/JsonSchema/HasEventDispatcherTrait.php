@@ -1,8 +1,7 @@
 <?php
 
-namespace JsonSchema\Validator;
+namespace JsonSchema;
 
-use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 trait HasEventDispatcherTrait
@@ -18,10 +17,4 @@ trait HasEventDispatcherTrait
     {
         return $this->eventDispatcher;
     }
-
-    public function setErrorHandler(ErrorHandlerInterface $handler)
-    {
-        //$this->getEventDispatcher()->addSubscriber($handler);
-        $this->getEventDispatcher()->addListener('validation.error', [$handler, 'receiveError']);
-    }
-}
+} 

@@ -1,11 +1,16 @@
 {
+    "minimum-stability": "dev",
     "autoload": {
         "psr-0": {
-           "JsonSchema": "src/"
+           "JsonSchema": "src/",
+           "spec\\JsonSchema": "spec/"
         }
     },
     "require": {
-        "phpspec/phpspec": "2.0.*@dev",
         "symfony/event-dispatcher": ">=2.1"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "2.0.*@dev",
+        "henrikbjorn/phpspec-code-coverage": "1.0.*@dev"
     }
 }

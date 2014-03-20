@@ -4,6 +4,7 @@ namespace JsonSchema\Schema;
 
 use InvalidArgumentException;
 use JsonSchema\ArrayAccessTrait;
+use JsonSchema\Enum\SchemaKeyword;
 use JsonSchema\Exception\InvalidTypeException;
 use JsonSchema\Validator\ValidatorInterface;
 
@@ -20,15 +21,25 @@ abstract class AbstractSchema implements SchemaInterface
         $this->validator = $validator;
     }
 
+    public function isKeyword($key)
+    {
+        return SchemaKeyword::isValidValue($key);
+    }
+
+    private function stringToCamelCase($string)
+    {
+        return str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
+    }
+
     public function offsetSet($offset, $value)
     {
         // Are we setting a keyword?
-        if ($this->validator->isKeyword($offset)) {
+        if ($this->isKeyword($offset)) {
 
-            $setter = $this->validator->getKeywordSetterMethod($offset);
+            $setter = sprintf("set%s", $this->stringToCamelCase($offset));
 
-            if ($setter) {
-                return call_user_func_array([$this, $setter], [$offset, $value]);
+            if (method_exists($this, $setter)) {
+                return $this->{$setter}($value);
             } else {
                 throw new \RuntimeException(sprintf(
                     "No setter method found for %s keyword", $offset
@@ -36,27 +47,12 @@ abstract class AbstractSchema implements SchemaInterface
             }
         }
 
-        // Setting a normal value
         $this->setValue($offset, $value);
     }
 
     private function setValue($offset, $value)
     {
         $this->data[$offset] = $value;
-    }
-
-    private function checkStringValidity($key, $value)
-    {
-        if (is_array($value) || is_object($value) || is_resource($value)) {
-            throw InvalidTypeException::factory($key, $value, "string");
-        }
-    }
-
-    private function setItemAsString($key, $value)
-    {
-        $this->checkStringValidity($key, $value);
-
-        $this->setValue($key, (string) $value);
     }
 
     private function setItemAsInteger($key, $value, $min = false, $max = false)
@@ -86,19 +82,57 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setValue($key, (int) $value);
     }
 
-    private function setItemAsBoolean($key, $value)
+    private function validateUniqueStringArray(&$array)
     {
-        $this->setValue($key, (bool) $value);
+        $errorTypes = [];
+
+        // Prohibit non-string values
+        foreach ($array as $key => $value) {
+            if (!is_string($value)) {
+                unset($array[$key]);
+                $errorTypes[] = gettype($value);
+            }
+        }
+
+        // Ensure values are unique and reset keys
+        $array = array_values(array_unique($array));
+
+        if (count($errorTypes)) {
+            throw new InvalidArgumentException(sprintf(
+                "The array specified is invalid. It must contain a list of "
+                . "unique strings. You provided these erroneous types: %s",
+                implode(', ', array_unique($errorTypes))
+            ));
+        }
     }
 
-    private function setItemAsNaturalNumber($key, $value)
+    public function isValidSchema($schema, $returnErrors = false)
     {
-        $this->setItemAsInteger($key, $value, -1);
+        return true;
     }
 
-    private function setItemAsArray($key, $value)
+    public function validateSchema($schema)
     {
-        $this->setValue($key, (array) $value);
+        if (!$this->isValidSchema($schema)) {
+            throw new InvalidTypeException('Schema is invalid');
+        }
+    }
+
+    /******** SETTERS ********/
+
+    public function setTitle($value)
+    {
+        $constraint = $this->validator->getConstraint('StringConstraint', $value);
+
+        $this->validator->addConstraint($constraint);
+        $this->validator->validate();
+
+        $this->setValue('title', $value);
+    }
+
+    public function setDescription($value)
+    {
+
     }
 
     public function setMultipleOf($value)
@@ -106,9 +140,39 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setItemAsInteger('multipleOf', $value, 0);
     }
 
+    public function setMaximum($value)
+    {
+
+    }
+
+    public function setExclusiveMaximum($value)
+    {
+
+    }
+
+    public function setMinimum($value)
+    {
+
+    }
+
+    public function setExclusiveMinimum($value)
+    {
+
+    }
+
+    public function setMinLength($value)
+    {
+
+    }
+
+    public function setMaxLength($value)
+    {
+
+    }
+
     public function setPattern($value)
     {
-        $this->checkStringValidity('pattern', $value);
+        //$this->checkStringValidity('pattern', $value);
 
         if (false === @preg_match($value, null)) {
             throw new InvalidArgumentException(sprintf(
@@ -140,43 +204,37 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setValue('items', $value);
     }
 
-    private function validateUniqueStringArray(&$array)
+    public function setMaxItems($value)
     {
-        $errorTypes = [];
 
-        // Prohibit non-string values
-        foreach ($array as $key => $value) {
-            if (!is_string($value)) {
-                unset($array[$key]);
-                $errorTypes[] = gettype($value);
-            }
-        }
-
-        // Ensure values are unique and reset keys
-        $array = array_values(array_unique($array));
-
-        if (count($errorTypes)) {
-            throw new InvalidArgumentException(sprintf(
-                "The array specified is invalid. It must contain a list of "
-                . "unique strings. You provided these erroneous types: %s",
-                implode(', ', array_unique($errorTypes))
-            ));
-        }
     }
 
-    private function validateArrayType($value, $key)
+    public function setMinItems($value)
     {
-        if (!is_array($value)) {
-            throw InvalidTypeException::factory($key, $value, 'array');
-        }
+
+    }
+
+    public function setUniqueItems($value)
+    {
+
+    }
+
+    public function setMaxProperties($value)
+    {
+
+    }
+
+    public function setMinProperties($value)
+    {
+
     }
 
     public function setRequired($array)
     {
-        $this->validateArrayType($array, 'required');
+        //$this->validateArrayType($array, 'required');
         $this->validateUniqueStringArray($array);
 
-        $this->setItemAsArray('required', $array);
+        $this->setValue('required', $array);
     }
 
     public function setAdditionalProperties($value)
@@ -197,41 +255,6 @@ abstract class AbstractSchema implements SchemaInterface
         }
 
         $this->setValue('properties', $value);
-    }
-
-    public function isValidSchema($schema, $returnErrors = false)
-    {
-        if (!is_object($schema)) {
-            return false;
-        }
-
-        $tmpSchema = new static();
-        $errors = [];
-
-        foreach ($schema as $key => $value) {
-            if ($this->isKeyword($key)) {
-                try {
-                    $tmpSchema[$key] = $value;
-                } catch (InvalidArgumentException $e) {
-                    $errors[] = $e->getMessage();
-                }
-            }
-        }
-
-        if (empty($errors)) {
-            return true;
-        } elseif ($returnErrors === true) {
-            return $errors;
-        } else {
-            return false;
-        }
-    }
-
-    public function validateSchema($schema)
-    {
-        if (!$this->isValidSchema($schema)) {
-            throw new InvalidTypeException('Schema is invalid');
-        }
     }
 
     public function setDependencies($array)
@@ -257,7 +280,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function setEnum($array)
     {
-        $this->validateArrayType($array, 'enum');
+        //$this->validateArrayType($array, 'enum');
 
         $this->setValue('enum', $array);
     }
@@ -273,7 +296,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function setAnyOf($array)
     {
-        $this->validateArrayType($array, 'anyOf');
+        //$this->validateArrayType($array, 'anyOf');
 
         foreach ($array as $key => $value) {
             if (is_object($value)) {
@@ -292,7 +315,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function setOneOf($array)
     {
-        $this->validateArrayType($array, 'oneOf');
+        //$this->validateArrayType($array, 'oneOf');
 
         foreach ($array as $value) {
             if (is_object($value)) {
@@ -327,15 +350,5 @@ abstract class AbstractSchema implements SchemaInterface
         }
 
         $this->setValue('format', $value);
-    }
-
-    public function setTitle($value)
-    {
-        
-    }
-
-    public function set($value)
-    {
-
     }
 }

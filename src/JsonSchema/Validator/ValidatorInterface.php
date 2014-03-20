@@ -2,13 +2,13 @@
 
 namespace JsonSchema\Validator;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 
 interface ValidatorInterface
 {
     public function setData($data);
 
-    public function setErrorHandler(EventSubscriberInterface $handler);
+    public function setErrorHandler(ErrorHandlerInterface $handler);
 
     public function validate();
 }

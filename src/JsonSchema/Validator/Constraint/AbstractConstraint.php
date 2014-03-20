@@ -2,14 +2,15 @@
 
 namespace JsonSchema\Validator\Constraint;
 
+use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
-use JsonSchema\Validator\HasEventDispatcherTrait;
+use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class AbstractConstraint implements ConstraintInterface
 {
-    use HasEventDispatcherTrait;
+    use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
     const TYPE = '';
 
