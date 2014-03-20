@@ -1,10 +1,11 @@
 {
     "autoload": {
-	"psr-0": {
-	   "JsonSchema": "src/"
-	}
+        "psr-0": {
+           "JsonSchema": "src/"
+        }
     },
     "require": {
-        "phpspec/phpspec": "2.0.*@dev"
+        "phpspec/phpspec": "2.0.*@dev",
+        "symfony/event-dispatcher": ">=2.1"
     }
 }

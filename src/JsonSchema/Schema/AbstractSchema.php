@@ -2,68 +2,37 @@
 
 namespace JsonSchema\Schema;
 
+use InvalidArgumentException;
+use JsonSchema\ArrayAccessTrait;
 use JsonSchema\Exception\InvalidTypeException;
-use Prophecy\Exception\InvalidArgumentException;
+use JsonSchema\Validator\ValidatorInterface;
 
 abstract class AbstractSchema implements SchemaInterface
 {
-    private $data;
-
-    private $keywords = [
-        'title'            => 'string',
-        'description'      => 'string',
-        'multipleOf'       => 'setMultipleOf',
-        'maximum'          => 'integer',
-        'exclusiveMaximum' => 'boolean',
-        'minimum'          => 'integer',
-        'exclusiveMinimum' => 'boolean',
-        'minLength'        => 'naturalNumber',
-        'maxLength'        => 'naturalNumber',
-        'pattern'          => 'setPattern',
-        'additionalItems'  => 'setAdditionalItems',
-        'items'            => 'setItems',
-        'maxItems'         => 'naturalNumber',
-        'minItems'         => 'naturalNumber',
-        'uniqueItems'      => 'boolean',
-        'maxProperties'    => 'naturalNumber',
-        'minProperties'    => 'naturalNumber',
-        'required'         => 'setRequired',
-        'additionalProperties' => 'setAdditionalProperties',
-        'properties'           => 'setProperties',
-        'dependencies'         => 'setDependencies',
-        'enum'             => 'setEnum',
-        'type'             => 'setType',
-        'anyOf'            => 'setAnyOf',
-        'oneOf'            => 'setOneOf',
-        'definitions'      => 'setDefinitions',
-        'format'           => 'setFormat'
-    ];
+    use ArrayAccessTrait;
 
     private $approvedFormats = [
         'date-time', 'email', 'hostname', 'ipv4', 'ipv6', 'uri'
     ];
 
-    private function setValue($offset, $value)
+    public function __construct(ValidatorInterface $validator)
     {
-        $this->data[$offset] = $value;
+        $this->validator = $validator;
     }
 
     public function offsetSet($offset, $value)
     {
         // Are we setting a keyword?
-        if (array_key_exists($offset, $this->keywords)) {
-            $type = $this->keywords[$offset];
-            $setItemMethod = "setItemAs{$type}";
+        if ($this->validator->isKeyword($offset)) {
 
-            if (substr($type, 0, 3) == 'set') {
-                // Call custom setter method, i.e. setMultipleOf($val)
-                return call_user_func_array([$this, $type], [$value]);
-            } elseif (method_exists($this, $setItemMethod)) {
-                // Call generic type setter method, i.e. setItemAsString($key, $val)
-                return call_user_func_array([$this, $setItemMethod], [$offset, $value]);
+            $setter = $this->validator->getKeywordSetterMethod($offset);
+
+            if ($setter) {
+                return call_user_func_array([$this, $setter], [$offset, $value]);
             } else {
-                // This keyword cannot be set
-                throw new \RuntimeException(sprintf("Invalid data/setter type for %s", $offset));
+                throw new \RuntimeException(sprintf(
+                    "No setter method found for %s keyword", $offset
+                ));
             }
         }
 
@@ -71,19 +40,9 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setValue($offset, $value);
     }
 
-    public function offsetExists($offset)
+    private function setValue($offset, $value)
     {
-        return !empty($this->data) && array_key_exists($offset, $this->data);
-    }
-
-    public function offsetUnset($offset)
-    {
-        unset($this->data[$offset]);
-    }
-
-    public function offsetGet($offset)
-    {
-        return $this->offsetExists($offset) ? $this->data[$offset] : null;
+        $this->data[$offset] = $value;
     }
 
     private function checkStringValidity($key, $value)
@@ -121,7 +80,7 @@ abstract class AbstractSchema implements SchemaInterface
         }
 
         if (isset($message)) {
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         $this->setValue($key, (int) $value);
@@ -152,7 +111,7 @@ abstract class AbstractSchema implements SchemaInterface
         $this->checkStringValidity('pattern', $value);
 
         if (false === @preg_match($value, null)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 "The string your provided is invalid regex pattern: %s",
                 $value
             ));
@@ -240,12 +199,35 @@ abstract class AbstractSchema implements SchemaInterface
         $this->setValue('properties', $value);
     }
 
-    private function isValidSchema($schema)
+    public function isValidSchema($schema, $returnErrors = false)
     {
-        return true;
+        if (!is_object($schema)) {
+            return false;
+        }
+
+        $tmpSchema = new static();
+        $errors = [];
+
+        foreach ($schema as $key => $value) {
+            if ($this->isKeyword($key)) {
+                try {
+                    $tmpSchema[$key] = $value;
+                } catch (InvalidArgumentException $e) {
+                    $errors[] = $e->getMessage();
+                }
+            }
+        }
+
+        if (empty($errors)) {
+            return true;
+        } elseif ($returnErrors === true) {
+            return $errors;
+        } else {
+            return false;
+        }
     }
 
-    private function validateSchema($schema)
+    public function validateSchema($schema)
     {
         if (!$this->isValidSchema($schema)) {
             throw new InvalidTypeException('Schema is invalid');
@@ -345,5 +327,15 @@ abstract class AbstractSchema implements SchemaInterface
         }
 
         $this->setValue('format', $value);
+    }
+
+    public function setTitle($value)
+    {
+        
+    }
+
+    public function set($value)
+    {
+
     }
 }
