@@ -4,6 +4,7 @@ namespace JsonSchema\Validator;
 
 use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Validator\Constraint\ConstraintFactory;
+use JsonSchema\Validator\Constraint\ConstraintFactoryInterface;
 use JsonSchema\Validator\Constraint\ConstraintInterface;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
@@ -14,12 +15,18 @@ abstract class AbstractValidator implements ValidatorInterface
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
     protected $data;
+
     protected $handler;
+    protected $constraintFactory;
+
     protected $constraints = [];
 
-    public function __construct(ErrorHandlerInterface $errorHandler = null)
-    {
+    public function __construct(
+        ErrorHandlerInterface $errorHandler = null,
+        ConstraintFactoryInterface $constraintFactory = null
+    ) {
         $this->setErrorHandler($errorHandler ?: new BufferErrorHandler());
+        $this->setConstraintFactory($constraintFactory ?: new ConstraintFactory());
     }
 
     public function setData($data)
@@ -42,10 +49,14 @@ abstract class AbstractValidator implements ValidatorInterface
         return $this->handler;
     }
 
-    public function getConstraintObject($name, $value)
+    public function setConstraintFactory(ConstraintFactoryInterface $factory)
     {
-        $factory = new ConstraintFactory();
-        return $factory->create($name, $value, $this->handler);
+        $this->constraintFactory = $factory;
+    }
+
+    public function createConstraint($name, $value)
+    {
+        return $this->constraintFactory->create($name, $value, $this->handler);
     }
 
     public function addConstraint(ConstraintInterface $constraint)
