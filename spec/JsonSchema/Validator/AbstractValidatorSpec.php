@@ -57,7 +57,7 @@ class AbstractValidatorSpec extends ObjectBehavior
 
     function it_should_provide_easy_instantiation_of_constraint_classes()
     {
-        $this->getConstraintObject('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
+        $this->createConstraint('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
     }
 }
 
