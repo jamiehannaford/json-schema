@@ -4,7 +4,7 @@ namespace JsonSchema\Validator\Constraint;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class ConstraintFactory
+class ConstraintFactory implements ConstraintFactoryInterface
 {
     public function create($class, $value, EventSubscriberInterface $handler)
     {

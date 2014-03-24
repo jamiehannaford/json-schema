@@ -49,4 +49,9 @@ abstract class AbstractConstraint implements ConstraintInterface
 
         return false;
     }
+
+    public function validate()
+    {
+        return $this->validateType();
+    }
 }
