@@ -13,9 +13,21 @@ abstract class AbstractSchema implements SchemaInterface
 
     private $validator;
 
-    public function __construct(ValidatorInterface $validator)
+    public function __construct(ValidatorInterface $validator, $data)
     {
-        $this->validator = $validator;
+        $this->setValidator($validator);
+        $this->setData($data);
+    }
+
+    public function setData($data)
+    {
+        if (!is_object($data)) {
+            throw new \InvalidArgumentException("Schema data must be provided as an object");
+        }
+
+        foreach ($data as $key => $val) {
+            $this->offsetSet($key, $val);
+        }
     }
 
     public function setValidator(ValidatorInterface $validator)
@@ -47,19 +59,25 @@ abstract class AbstractSchema implements SchemaInterface
         $this->data[$offset] = $value;
     }
 
-    private function getKeywordConstraints($keyword, $value)
+    public function getKeywordConstraints($keyword, $value)
     {
         $constraints = [];
 
         switch ($keyword) {
             case SchemaKeyword::TITLE:
             case SchemaKeyword::DESCRIPTION:
-                $constraints[] = 'StringConstraint';
+                $constraints[] = $this->validator->createConstraint('StringConstraint', $value);
                 break;
             case SchemaKeyword::MULTIPLE_OF:
                 $constraint = $this->validator->createConstraint('NumberConstraint', $value);
                 $constraint->setLowerBound(0);
                 $constraints[] = $constraint;
+                break;
+            case SchemaKeyword::MAXIMUM:
+                $constraints[] = $this->validator->createConstraint('NumberConstraint', $value);
+                break;
+            case SchemaKeyword::EXCLUSIVE_MAXIMUM:
+                $constraints[] = $this->validator->createConstraint('BooleanConstraint', $value);
                 break;
         }
 
@@ -71,9 +89,6 @@ abstract class AbstractSchema implements SchemaInterface
         $constraints = $this->getKeywordConstraints($keyword, $value);
 
         foreach ($constraints as $constraint) {
-            if (is_string($constraint)) {
-                $constraint = $this->validator->createConstraint($constraint, $value);
-            }
             if ($constraint instanceof ConstraintInterface) {
                 $this->validator->addConstraint($constraint);
             }

@@ -15,10 +15,8 @@ abstract class AbstractValidator implements ValidatorInterface
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
     protected $data;
-
     protected $handler;
     protected $constraintFactory;
-
     protected $constraints = [];
 
     public function __construct(

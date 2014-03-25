@@ -2,6 +2,9 @@
 
 namespace JsonSchema;
 
+use JsonSchema\Schema\RootSchema;
+use JsonSchema\Validator\SchemaValidator;
+
 class Parser
 {
     private $jsonData;
@@ -53,6 +56,12 @@ class Parser
         if (!is_resource($this->jsonData)) {
             throw new \RuntimeException('No JSON data has been set to parse');
         }
-        return (new JsonSchema($this->jsonData));
+
+        $validator = new SchemaValidator();
+
+        $schema = new RootSchema($validator);
+        $schema->populate($this->jsonData);
+
+        return $schema;
     }
 }
