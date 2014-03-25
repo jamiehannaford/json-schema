@@ -31,106 +31,126 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->beConstructedWith($validator, $data);
     }
 
+    function it_should_only_set_keywords_when_their_validation_passes(SchemaValidator $validator, BooleanConstraint $constraint)
+    {
+        /**
+         * TEST 1: test that keywords are set when their validation succeeds
+         * The BooleanConstraint returns TRUE when the value being validated is a boolean.
+         */
+
+        $value1 = true;
+
+        // Mock the factory method which returns the Constraint object
+        $validator->createConstraint('BooleanConstraint', $value1)->willReturn($constraint);
+        // Add constraint to validator and set up promise
+        $validator->addConstraint($constraint)->shouldBeCalled();
+        // Set validator for this object
+        $this->setValidator($validator);
+        // Mock successful validation
+        $validator->validate()->willReturn(true);
+
+        $this->offsetSet('exclusiveMaximum', $value1);
+        $this->offsetGet('exclusiveMaximum')->shouldReturn($value1);
+
+        /**
+         * TEST 2: test that keywords are not set when their validation fails
+         * The BooleanConstraint returns FALSE when the value being validated is not a boolean.
+         */
+
+        $value2 = 'Foo';
+
+        // Mock the factory method which returns the Constraint object
+        $validator->createConstraint('BooleanConstraint', $value2)->willReturn($constraint);
+        // Add constraint to validator and set up promise
+        $validator->addConstraint($constraint)->shouldBeCalled();
+        // Set validator for this object
+        $this->setValidator($validator);
+        // Mock an unsuccessful validation
+        $validator->validate()->willReturn(false);
+
+        $this->offsetSet('exclusiveMaximum', $value2);
+        $this->offsetGet('exclusiveMaximum')->shouldReturn(null);
+    }
+
     function it_should_throw_exception_if_schema_data_is_not_object()
     {
         $this->shouldThrow('InvalidArgumentException')->duringSetData([]);
     }
 
-//    function it_should_populate_keywords_when_correct(SchemaValidator $validator, StringConstraint $constraint)
-//    {
-//        $validator->createConstraint('StringConstraint', 'Foo bar')->willReturn($constraint);
-//        $validator->addConstraint($constraint)->shouldBeCalled();
-//        $validator->validate()->willReturn(true);
-//        $validator->validate()->shouldBeCalled();
-//
-//        $data = (object) ['description' => 'Foo bar'];
-//        $this->setData($data);
-//        $this->offsetGet('description')->shouldReturn('Foo bar');
-//    }
-//
-//    function it_should_have_validator(SchemaValidator $validator)
-//    {
-//        $this->setValidator($validator);
-//        $this->getValidator()->shouldReturn($validator);
-//    }
-//
-//    function it_should_recognize_keywords()
-//    {
-//        $this->shouldBeKeyword('title');
-//        $this->shouldBeKeyword('multipleOf');
-//
-//        $this->shouldNotBeKeyword('Foo');
-//        $this->shouldNotBeKeyword(['Bar']);
-//    }
-//
-//    function it_can_set_non_keywords()
-//    {
-//        $this->testMutability('Foo', 'Bar');
-//    }
-//
-//    function it_should_set_title_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-//    {
-//        $this->testKeywordMutability('title', 'Foo', $validator, $constraint);
-//    }
-//
-//    function it_should_not_set_title_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-//    {
-//        $this->testKeywordValidationGenericFailure('title', $validator, $constraint);
-//    }
-//
-//    function it_should_set_desc_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-//    {
-//        $this->testKeywordMutability('description', 'Foo', $validator, $constraint);
-//    }
-//
-//    function it_should_not_set_desc_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-//    {
-//        $this->testKeywordValidationGenericFailure('description', $validator, $constraint);
-//    }
-//
-//    function it_should_set_multipleOf_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
-//    {
-//        $this->testKeywordMutability('multipleOf', 100, $validator, $constraint);
-//    }
-//
-//    function it_should_not_set_multipleOf_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
-//    {
-//        $this->testKeywordValidationGenericFailure('multipleOf', $validator, $constraint);
-//    }
-//
-//    function it_should_set_maximum_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
-//    {
-//        $this->testKeywordMutability('maximum', 100, $validator, $constraint);
-//    }
-//
-//    function it_should_not_set_maximum_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
-//    {
-//        $this->testKeywordValidationGenericFailure('maximum', $validator, $constraint);
-//    }
+    function it_should_populate_keywords_when_correct(SchemaValidator $validator, StringConstraint $constraint)
+    {
+        $validator->createConstraint('StringConstraint', 'Foo bar')->willReturn($constraint);
+        $validator->addConstraint($constraint)->shouldBeCalled();
+        $validator->validate()->willReturn(true);
+        $validator->validate()->shouldBeCalled();
+
+        $data = (object) ['description' => 'Foo bar'];
+        $this->setData($data);
+        $this->offsetGet('description')->shouldReturn('Foo bar');
+    }
+
+    function it_should_have_validator(SchemaValidator $validator)
+    {
+        $this->setValidator($validator);
+        $this->getValidator()->shouldReturn($validator);
+    }
+
+    function it_should_recognize_keywords()
+    {
+        $this->shouldBeKeyword('title');
+        $this->shouldBeKeyword('multipleOf');
+
+        $this->shouldNotBeKeyword('Foo');
+        $this->shouldNotBeKeyword(['Bar']);
+    }
+
+    function it_can_set_non_keywords()
+    {
+        $this->testMutability('Foo', 'Bar');
+    }
+
+    function it_should_set_title_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
+    {
+        $this->testKeywordMutability('title', 'Foo', $validator, $constraint);
+    }
+
+    function it_should_not_set_title_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
+    {
+        $this->testKeywordValidationGenericFailure('title', $validator, $constraint);
+    }
+
+    function it_should_set_desc_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
+    {
+        $this->testKeywordMutability('description', 'Foo', $validator, $constraint);
+    }
+
+    function it_should_not_set_desc_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
+    {
+        $this->testKeywordValidationGenericFailure('description', $validator, $constraint);
+    }
+
+    function it_should_set_multipleOf_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
+    {
+        $this->testKeywordMutability('multipleOf', 100, $validator, $constraint);
+    }
+
+    function it_should_not_set_multipleOf_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
+    {
+        $this->testKeywordValidationGenericFailure('multipleOf', $validator, $constraint);
+    }
+
+    function it_should_set_maximum_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
+    {
+        $this->testKeywordMutability('maximum', 100, $validator, $constraint);
+    }
+
+    function it_should_not_set_maximum_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
+    {
+        $this->testKeywordValidationGenericFailure('maximum', $validator, $constraint);
+    }
 
     function it_should_set_exclusiveMaximum_if_validation_passes(SchemaValidator $validator, BooleanConstraint $constraint)
     {
-        // Create constraint object using factory
-        $validator->createConstraint('BooleanConstraint', true)->willReturn($constraint);
-        // Add to validator
-        $validator->addConstraint($constraint)->shouldBeCalled();
-        // Reset validator
-        $this->setValidator($validator);
-        $validator->validate()->willReturn(true);
-
-        $this->offsetSet('exclusiveMaximum', true);
-        $this->offsetGet('exclusiveMaximum')->shouldReturn(true);
-
-        // Create constraint object using factory
-        $validator->createConstraint('BooleanConstraint', 'Foo')->willReturn($constraint);
-        // Add to validator
-        $validator->addConstraint($constraint)->shouldBeCalled();
-        // Reset validator
-        $this->setValidator($validator);
-        $validator->validate()->willReturn(false);
-
-        $this->offsetSet('exclusiveMaximum', 'Foo');
-        $this->offsetGet('exclusiveMaximum')->shouldReturn(null);
     }
 
     function it_should_set_minimum_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
