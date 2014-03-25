@@ -2,10 +2,10 @@
 
 namespace JsonSchema\Validator\Constraint;
 
-class StringConstraint extends AbstractConstraint
+class BooleanConstraint extends AbstractConstraint
 {
     public function hasCorrectType()
     {
-        return is_string($this->value);
+        return is_bool($this->value);
     }
 }

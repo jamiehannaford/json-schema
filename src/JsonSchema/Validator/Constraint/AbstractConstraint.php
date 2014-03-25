@@ -12,14 +12,11 @@ abstract class AbstractConstraint implements ConstraintInterface
 {
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
-    const TYPE = '';
-
     protected $value;
 
     public function __construct($value, ErrorHandlerInterface $errorHandler)
     {
         $this->setValue($value);
-
         $this->setEventDispatcher(new EventDispatcher());
         $this->setErrorHandler($errorHandler);
     }
@@ -34,9 +31,11 @@ abstract class AbstractConstraint implements ConstraintInterface
         return $this->value;
     }
 
+    abstract public function hasCorrectType();
+
     public function validateType()
     {
-        if (strtolower(gettype($this->value)) === static::TYPE) {
+        if ($this->hasCorrectType()) {
             return true;
         }
 

@@ -6,40 +6,30 @@ use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class NumberConstraintSpec extends ObjectBehavior
+class BooleanConstraintSpec extends ObjectBehavior
 {
     function let(BufferErrorHandler $handler)
     {
-        $this->beConstructedWith(101, $handler);
+        $this->beConstructedWith(true, $handler);
     }
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('JsonSchema\Validator\Constraint\NumberConstraint');
+        $this->shouldHaveType('JsonSchema\Validator\Constraint\BooleanConstraint');
         $this->shouldImplement('JsonSchema\Validator\Constraint\ConstraintInterface');
     }
 
-    function it_should_support_lower_bound()
+    function it_should_pass_bool_types()
     {
-        $this->setLowerBound(10);
-        $this->getLowerBound()->shouldReturn(10);
-    }
-
-    function it_should_pass_ints()
-    {
-        $this->setValue(0);
-
+        $this->setValue(true);
         $this->shouldHaveCorrectType();
-
         $this->validate()->shouldReturn(true);
     }
 
-    function it_should_fail_string_types()
+    function it_should_fail_non_bool_types()
     {
         $this->setValue('Foo');
-
         $this->shouldNotHaveCorrectType();
-
         $this->validate()->shouldReturn(false);
     }
 }

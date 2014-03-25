@@ -36,5 +36,6 @@ class AbstractConstraintSpec extends ObjectBehavior
 
 class TestableAbstractConstraint extends AbstractConstraint
 {
+    public function hasCorrectType() {}
     public function validate() {}
 }

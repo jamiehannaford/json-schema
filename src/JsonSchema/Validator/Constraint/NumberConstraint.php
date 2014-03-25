@@ -4,9 +4,12 @@ namespace JsonSchema\Validator\Constraint;
 
 class NumberConstraint extends AbstractConstraint
 {
-    const TYPE = 'numeric';
-
     private $lowerBound;
+
+    public function hasCorrectType()
+    {
+        return is_numeric($this->value);
+    }
 
     public function setLowerBound($lowerBound)
     {
