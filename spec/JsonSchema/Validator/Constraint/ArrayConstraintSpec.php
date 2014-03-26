@@ -32,4 +32,32 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->shouldNotHaveCorrectType();
         $this->validateType()->shouldReturn(false);
     }
+
+    function it_should_support_nested_schema_validation()
+    {
+        $this->getNestedSchemaValidation()->shouldReturn(false);
+
+        $this->setNestedSchemaValidation(true);
+        $this->getNestedSchemaValidation()->shouldReturn(true);
+    }
+
+    function it_should_support_internal_type_validation()
+    {
+        $this->setInternalType('string');
+        $this->getInternalType()->shouldReturn('string');
+    }
+
+    function it_should_allow_uniqueness()
+    {
+        $this->getUniqueness()->shouldReturn(false);
+
+        $this->setUniqueness(true);
+        $this->getUniqueness()->shouldReturn(true);
+    }
+
+    function it_should_support_min_count()
+    {
+        $this->setMinimumCount(10);
+        $this->getMinimumCount()->shouldReturn(10);
+    }
 }

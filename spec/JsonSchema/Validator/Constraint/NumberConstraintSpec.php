@@ -42,4 +42,19 @@ class NumberConstraintSpec extends ObjectBehavior
 
         $this->validate()->shouldReturn(false);
     }
+
+    function it_should_allow_exclusive_checks()
+    {
+        $this->setExclusive(false);
+        $this->getExclusive()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_for_numbers_on_boundary_if_exclusive_is_true()
+    {
+        $this->setLowerBound(5);
+        $this->setExclusive(true);
+        $this->setValue(5);
+
+        $this->validate()->shouldReturn(false);
+    }
 }

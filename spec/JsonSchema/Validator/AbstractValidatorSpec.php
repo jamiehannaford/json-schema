@@ -2,6 +2,7 @@
 
 namespace spec\JsonSchema\Validator;
 
+use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\AbstractValidator;
 use JsonSchema\Validator\Constraint\StringConstraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
@@ -58,6 +59,37 @@ class AbstractValidatorSpec extends ObjectBehavior
     function it_should_provide_easy_instantiation_of_constraint_classes()
     {
         $this->createConstraint('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
+    }
+
+    function it_should_set_strictness_mode_as_all_by_default()
+    {
+        $this->getStrictnessMode()->shouldReturn(StrictnessMode::ALL);
+    }
+
+    function it_should_allow_different_strictness_modes()
+    {
+        $this->setStrictnessMode(StrictnessMode::ANY);
+        $this->getStrictnessMode()->shouldReturn(StrictnessMode::ANY);
+    }
+
+    function it_considers_validation_successful_if_every_constraint_passes_when_strictness_mode_is_all()
+    {
+
+    }
+
+    function it_considers_validation_unsuccessful_if_any_constraint_fails_when_strictness_mode_is_all()
+    {
+
+    }
+
+    function it_considers_validation_successful_if_any_constraint_passes_when_strictness_mode_is_any()
+    {
+
+    }
+
+    function it_considers_validation_unsuccessful_if_all_constraints_fail_when_strictness_mode_is_any()
+    {
+
     }
 }
 

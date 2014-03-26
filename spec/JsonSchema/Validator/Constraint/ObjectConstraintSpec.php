@@ -32,4 +32,12 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->shouldNotHaveCorrectType();
         $this->validateType()->shouldReturn(false);
     }
+
+    function it_should_support_schema_validation()
+    {
+        $this->getSchemaValidation()->shouldReturn(false);
+
+        $this->setSchemaValidation(true);
+        $this->getSchemaValidation()->shouldReturn(true);
+    }
 }

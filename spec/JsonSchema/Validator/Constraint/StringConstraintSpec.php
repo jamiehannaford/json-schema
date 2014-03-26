@@ -73,4 +73,10 @@ class StringConstraintSpec extends ObjectBehavior
 
         $this->getErrorCount()->shouldReturn(1);
     }
+
+    function it_should_support_regex_validation()
+    {
+        $this->setRegexValidation(true);
+        $this->hasRegexValidation()->shouldReturn(true);
+    }
 }
