@@ -111,6 +111,7 @@ abstract class AbstractSchema implements SchemaInterface
                 break;
 
             // Bool or object
+            case SchemaKeyword::ADDITIONAL_PROPERTIES:
             case SchemaKeyword::ADDITIONAL_ITEMS:
                 // Make sure the validator knows either constraint can succeed for validation to pass
                 $this->validator->setStrictnessMode(StrictnessMode::ANY);
@@ -135,11 +136,33 @@ abstract class AbstractSchema implements SchemaInterface
                 $constraints[] = $objectConstraint;
                 break;
 
+            // Array whose items must be unique strings
             case SchemaKeyword::REQUIRED:
                 $constraint = $this->validator->createConstraint('ArrayConstraint', $value);
                 $constraint->setInternalType('string');
                 $constraint->setUniqueness(true);
                 $constraint->setMinimumCount(1);
+                $constraints[] = $constraint;
+                break;
+
+            // Object whose values must be valid schemas
+            case SchemaKeyword::PROPERTIES:
+                $constraint = $this->validator->createConstraint('ObjectConstraint', $value);
+                $constraint->setNestedSchemaValidation(true);
+                $constraints[] = $constraint;
+                break;
+
+            // Object whose keys are valid regex strings + values are valid JSON schemas
+            case SchemaKeyword::PATTERN_PROPERTIES:
+                $constraint = $this->validator->createConstraint('ObjectConstraint', $value);
+                $constraint->setNestedRegexValidation(true);
+                $constraints[] = $constraint;
+                break;
+
+            // Object whose values are either valid schemas or arrays
+            case SchemaKeyword::DEPENDENCIES:
+                $constraint = $this->validator->createConstraint('ObjectConstraint', $value);
+                $constraint->setDependencyValidation(true);
                 $constraints[] = $constraint;
                 break;
         }

@@ -24,6 +24,7 @@ abstract class SchemaKeyword extends BaseEnum
     const REQUIRED = 'required';
     const ADDITIONAL_PROPERTIES = 'additionalProperties';
     const PROPERTIES = 'properties';
+    const PATTERN_PROPERTIES = 'patternProperties';
     const DEPENDENCIES = 'dependencies';
     const ENUM = 'enum';
     const TYPE = 'type';

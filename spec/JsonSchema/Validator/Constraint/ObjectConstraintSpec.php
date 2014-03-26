@@ -40,4 +40,22 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setSchemaValidation(true);
         $this->getSchemaValidation()->shouldReturn(true);
     }
+
+    function it_should_support_nested_schema_validation()
+    {
+        $this->setNestedSchemaValidation(true);
+        $this->getNestedSchemaValidation()->shouldReturn(true);
+    }
+
+    function it_should_support_nested_regex_validation()
+    {
+        $this->setNestedRegexValidation(true);
+        $this->getNestedRegexValidation()->shouldReturn(true);
+    }
+
+    function it_should_support_custom_dependency_validation()
+    {
+        $this->setDependencyValidation(true);
+        $this->getDependencyValidation()->shouldReturn(true);
+    }
 }

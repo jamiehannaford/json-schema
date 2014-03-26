@@ -248,59 +248,54 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->testValidationPrediction('required', $validator, $constraint);
     }
 
-    function it_should_validate_additionalProperties_as_either_bool_or_object()
-    {
-        
+    function it_should_validate_additionalProperties_as_either_bool_or_object(
+        SchemaValidator $validator,
+        BooleanConstraint $booleanConstraint,
+        ObjectConstraint $objectConstraint
+    ) {
+        // Make sure the validator knows either constraint is acceptable
+        $validator->setStrictnessMode(StrictnessMode::ANY)->shouldBeCalled();
+
+        // Objects need to be valid schemas
+        $objectConstraint->setSchemaValidation(Argument::type('bool'))->shouldBeCalled();
+
+        $value = 'foo';
+        $name = 'additionalProperties';
+
+        // Make sure the method is stubbed
+        $validator->createConstraint('BooleanConstraint', Argument::any())->willReturn($booleanConstraint);
+        $validator->createConstraint('ObjectConstraint', Argument::any())->willReturn($objectConstraint);
+
+        // Now initiate validator name search
+        $this->getKeywordConstraints($name, $value);
+
+        // Make sure our expectation has been fulfilled
+        $validator->createConstraint('BooleanConstraint', $value)->shouldHaveBeenCalled();
+        $validator->createConstraint('ObjectConstraint', $value)->shouldHaveBeenCalled();
     }
 
-    function it_should_consider_additionalProperties_a_json_schema_if_object()
+    function it_should_validate_properties_as_object(SchemaValidator $validator, ObjectConstraint $constraint)
     {
-
+        $constraint->setNestedSchemaValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('properties', $validator, $constraint);
     }
 
-    function it_should_validate_properties_as_object()
+    function it_should_validate_patternProperties_as_object(SchemaValidator $validator, ObjectConstraint $constraint)
     {
-
+        $constraint->setNestedRegexValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('patternProperties', $validator, $constraint);
     }
 
-    function it_should_consider_properties_an_object_whose_properties_are_json_schemas()
+    function it_should_validate_dependencies_as_object(SchemaValidator $validator, ObjectConstraint $constraint)
     {
-
+        $this->testValidationPrediction('dependencies', $validator, $constraint);
     }
 
-    function it_should_validate_patternProperties_as_object()
-    {
-
-    }
-
-    function it_should_insist_on_patternProperties_having_regex_strings_for_object_properties()
-    {
-
-    }
-
-    function it_should_insist_on_patternProperties_having_json_schemas_for_object_vals()
-    {
-
-    }
-
-    function it_should_validate_dependencies_as_object()
-    {
-
-    }
-
-    function it_should_insist_on_dependencies_having_either_arrays_or_objects_as_object_properties()
-    {
-
-    }
-
-    function it_should_ensure_that_values_of_dependencies_which_are_values_are_json_schemas()
-    {
-
-    }
-
-    function it_should_ensure_that_values_of_dependencies_which_are_arrays_contain_unique_strings()
-    {
-
+    function it_should_insist_on_dependencies_having_either_arrays_or_objects_as_object_properties(
+        SchemaValidator $validator, ObjectConstraint $constraint
+    ) {
+        $constraint->setDependencyValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('dependencies', $validator, $constraint);
     }
 
     /*** HELPERS ***/
