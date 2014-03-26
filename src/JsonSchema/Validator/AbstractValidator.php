@@ -2,6 +2,7 @@
 
 namespace JsonSchema\Validator;
 
+use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Validator\Constraint\ConstraintFactory;
 use JsonSchema\Validator\Constraint\ConstraintFactoryInterface;
@@ -18,6 +19,8 @@ abstract class AbstractValidator implements ValidatorInterface
     protected $handler;
     protected $constraintFactory;
     protected $constraints = [];
+
+    protected $strictnessMode = StrictnessMode::ALL;
 
     public function __construct(
         ErrorHandlerInterface $errorHandler = null,
@@ -70,5 +73,15 @@ abstract class AbstractValidator implements ValidatorInterface
     public function getConstraints()
     {
         return $this->constraints;
+    }
+
+    public function setStrictnessMode($mode)
+    {
+        $this->strictnessMode = $mode;
+    }
+
+    public function getStrictnessMode()
+    {
+        return $this->strictnessMode;
     }
 }
