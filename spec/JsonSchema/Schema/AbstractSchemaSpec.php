@@ -8,6 +8,7 @@ use JsonSchema\Validator\Constraint\ConstraintInterface;
 use JsonSchema\Validator\Constraint\NumberConstraint;
 use JsonSchema\Validator\Constraint\StringConstraint;
 use JsonSchema\Validator\SchemaValidator;
+use JsonSchema\Validator\ValidatorInterface;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -29,47 +30,6 @@ class AbstractSchemaSpec extends ObjectBehavior
         // Basic object setup
         $this->beAnInstanceOf('spec\JsonSchema\Schema\TestableAbstractSchema');
         $this->beConstructedWith($validator, $data);
-    }
-
-    function it_should_only_set_keywords_when_their_validation_passes(SchemaValidator $validator, BooleanConstraint $constraint)
-    {
-        /**
-         * TEST 1: test that keywords are set when their validation succeeds
-         * The BooleanConstraint returns TRUE when the value being validated is a boolean.
-         */
-
-        $value1 = true;
-
-        // Mock the factory method which returns the Constraint object
-        $validator->createConstraint('BooleanConstraint', $value1)->willReturn($constraint);
-        // Add constraint to validator and set up promise
-        $validator->addConstraint($constraint)->shouldBeCalled();
-        // Set validator for this object
-        $this->setValidator($validator);
-        // Mock successful validation
-        $validator->validate()->willReturn(true);
-
-        $this->offsetSet('exclusiveMaximum', $value1);
-        $this->offsetGet('exclusiveMaximum')->shouldReturn($value1);
-
-        /**
-         * TEST 2: test that keywords are not set when their validation fails
-         * The BooleanConstraint returns FALSE when the value being validated is not a boolean.
-         */
-
-        $value2 = 'Foo';
-
-        // Mock the factory method which returns the Constraint object
-        $validator->createConstraint('BooleanConstraint', $value2)->willReturn($constraint);
-        // Add constraint to validator and set up promise
-        $validator->addConstraint($constraint)->shouldBeCalled();
-        // Set validator for this object
-        $this->setValidator($validator);
-        // Mock an unsuccessful validation
-        $validator->validate()->willReturn(false);
-
-        $this->offsetSet('exclusiveMaximum', $value2);
-        $this->offsetGet('exclusiveMaximum')->shouldReturn(null);
     }
 
     function it_should_throw_exception_if_schema_data_is_not_object()
@@ -109,300 +69,53 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->testMutability('Foo', 'Bar');
     }
 
-    function it_should_set_title_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
+    function it_should_set_keyword_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
     {
         $this->testKeywordMutability('title', 'Foo', $validator, $constraint);
     }
 
-    function it_should_not_set_title_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
+    function it_should_not_set_keyword_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
     {
-        $this->testKeywordValidationGenericFailure('title', $validator, $constraint);
+        $val = 101;
+        $name = 'title';
+
+        $this->setupKeywordCollaborators($val, $validator, $constraint);
+
+        // Fake a "FALSE" validation
+        $this->offsetSet($name, $val);
+        $validator->validate()->willReturn(false);
+
+        // Setting fails
+        $this->offsetSet($name, $val);
+        $this->offsetGet($name)->shouldReturn(null);
     }
 
-    function it_should_set_desc_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
+    function it_should_validate_title_as_string(SchemaValidator $validator, StringConstraint $constraint)
     {
-        $this->testKeywordMutability('description', 'Foo', $validator, $constraint);
+        $this->testValidationPrediction('title', 'StringConstraint', $validator, $constraint);
     }
 
-    function it_should_not_set_desc_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
+    function it_should_validate_desc_as_string(SchemaValidator $validator, StringConstraint $constraint)
     {
-        $this->testKeywordValidationGenericFailure('description', $validator, $constraint);
-    }
-
-    function it_should_set_multipleOf_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
-    {
-        $this->testKeywordMutability('multipleOf', 100, $validator, $constraint);
-    }
-
-    function it_should_not_set_multipleOf_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
-    {
-        $this->testKeywordValidationGenericFailure('multipleOf', $validator, $constraint);
-    }
-
-    function it_should_set_maximum_if_validation_passes(SchemaValidator $validator, NumberConstraint $constraint)
-    {
-        $this->testKeywordMutability('maximum', 100, $validator, $constraint);
-    }
-
-    function it_should_not_set_maximum_if_validation_fails(SchemaValidator $validator, NumberConstraint $constraint)
-    {
-        $this->testKeywordValidationGenericFailure('maximum', $validator, $constraint);
-    }
-
-    function it_should_set_exclusiveMaximum_if_validation_passes(SchemaValidator $validator, BooleanConstraint $constraint)
-    {
-    }
-
-    function it_should_set_minimum_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-    }
-
-    function it_should_not_set_minimum_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_exclusiveMinimum_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_exclusiveMinimum_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_maxLength_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_maxLength_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_minLength_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_minLength_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_pattern_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_pattern_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_additionalItems_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_additionalItems_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_items_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_items_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_maxItems_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_maxItems_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_minItems_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_minItems_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_uniqueItems_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_uniqueItems_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_maxProperties_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_maxProperties_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_minProperties_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_minProperties_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_required_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_required_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_additionalProperties_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_additionalProperties_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_properties_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_properties_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_patternProperties_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_patternProperties_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_dependencies_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_dependencies_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_enum_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_enum_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_type_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_type_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_allOf_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_allOf_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_anyOf_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_anyOf_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_oneOf_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_oneOf_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_not_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_not_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_definitions_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_definitions_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_set_default_if_validation_passes(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
-    }
-
-    function it_should_not_set_default_if_validation_fails(SchemaValidator $validator, StringConstraint $constraint)
-    {
-
+        $this->testValidationPrediction('description', 'StringConstraint', $validator, $constraint);
     }
 
     /*** HELPERS ***/
+
+    private function testValidationPrediction($name, $constraintName, ValidatorInterface $validator, ConstraintInterface $constraint)
+    {
+        // Value is arbitrary
+        $value = 'foo';
+
+        // Make sure the method is stubbed
+        $validator->createConstraint(Argument::any(), Argument::any())->willReturn($constraint);
+
+        // Set up explicit expectation
+        $validator->createConstraint($constraintName, $value)->shouldBeCalled();
+
+        // Now initiate validator name search
+        $this->getKeywordConstraints($name, $value);
+    }
 
     public function testMutability($key, $val)
     {
@@ -460,20 +173,6 @@ class AbstractSchemaSpec extends ObjectBehavior
 
         // Make sure basic setter/getter logic works
         $this->testMutability($name, $val);
-    }
-
-    private function testKeywordValidationGenericFailure($name, SchemaValidator $validator, ConstraintInterface $constraint)
-    {
-        $val = 'Foo';
-        $this->setupKeywordCollaborators($val, $validator, $constraint);
-
-        // Fake a "FALSE" validation
-        $this->offsetSet($name, $val);
-        $validator->validate()->willReturn(false);
-
-        // Setting fails
-        $this->offsetSet($name, $val);
-        $this->offsetGet($name)->shouldReturn(null);
     }
 }
 
