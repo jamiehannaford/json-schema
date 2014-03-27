@@ -9,6 +9,37 @@ class ArrayConstraint extends AbstractConstraint
     private $uniqueness = false;
     private $minCount;
 
+    public function validate()
+    {
+        if (!$this->validateType()) {
+            return false;
+        }
+
+        if (true === $this->nestedSchemaValidation) {
+
+        }
+
+        if (false !== ($typeFunction = $this->getTypeFunction($this->internalType))) {
+            foreach ($this->value as $value) {
+                if (false === call_user_func($typeFunction, $value)) {
+                    return false;
+                }
+            }
+        }
+
+        if (true === $this->uniqueness) {
+            $this->value = array_unique($this->value);
+        }
+
+        if ((int) $this->minCount > 0) {
+            if (count($this->value) < $this->minCount) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function hasCorrectType()
     {
         return is_array($this->value);

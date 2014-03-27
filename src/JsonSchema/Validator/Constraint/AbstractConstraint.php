@@ -12,6 +12,18 @@ abstract class AbstractConstraint implements ConstraintInterface
 {
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
+    private $typeFunctions = [
+        'string'  => 'is_string',
+        'bool'    => 'is_bool',
+        'boolean' => 'is_bool',
+        'array'   => 'is_array',
+        'object'  => 'is_object',
+        'int'     => 'is_int',
+        'integer' => 'is_integer',
+        'float'   => 'is_float',
+        'numeric' => 'is_numeric'
+    ];
+
     protected $value;
 
     public function __construct($value, ErrorHandlerInterface $errorHandler)
@@ -33,18 +45,22 @@ abstract class AbstractConstraint implements ConstraintInterface
 
     abstract public function hasCorrectType();
 
+    protected function registerError($errorType, $expectedValue = null)
+    {
+        $this->getEventDispatcher()->dispatch('validation.error', new Event([
+            'value'     => $this->value,
+            'errorType' => $errorType,
+            'expected'  => $expectedValue
+        ]));
+    }
+
     public function validateType()
     {
         if ($this->hasCorrectType()) {
             return true;
         }
 
-        $event = new Event([
-            'value'     => $this->value,
-            'errorType' => 'wrongValue',
-            'expected'  => static::TYPE
-        ]);
-        $this->getEventDispatcher()->dispatch('validation.error', $event);
+        $this->registerError('wrongValue');
 
         return false;
     }
@@ -52,5 +68,10 @@ abstract class AbstractConstraint implements ConstraintInterface
     public function validate()
     {
         return $this->validateType();
+    }
+
+    protected function getTypeFunction($type)
+    {
+        return (isset($this->typeFunctions[$type])) ? $this->typeFunctions[$type] : false;
     }
 }
