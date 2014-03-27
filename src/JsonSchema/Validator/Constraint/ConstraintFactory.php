@@ -2,11 +2,11 @@
 
 namespace JsonSchema\Validator\Constraint;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ConstraintFactory implements ConstraintFactoryInterface
 {
-    public function create($class, $value, EventSubscriberInterface $handler)
+    public function create($class, $value, EventDispatcherInterface $dispatcher)
     {
         $class = $this->normalizeClassName($class);
 
@@ -14,7 +14,7 @@ class ConstraintFactory implements ConstraintFactoryInterface
             throw new \RuntimeException(sprintf("%s class does not exist", $class));
         }
 
-        $constraint = new $class($value, $handler);
+        $constraint = new $class($value, $dispatcher);
 
         if (!$constraint instanceof ConstraintInterface) {
             throw new \InvalidArgumentException(sprintf(

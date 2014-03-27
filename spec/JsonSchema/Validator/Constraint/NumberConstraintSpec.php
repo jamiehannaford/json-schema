@@ -5,12 +5,13 @@ namespace spec\JsonSchema\Validator\Constraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class NumberConstraintSpec extends ObjectBehavior
 {
-    function let(BufferErrorHandler $handler)
+    function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith(101, $handler);
+        $this->beConstructedWith(101, $dispatcher);
     }
 
     function it_is_initializable()
@@ -47,6 +48,14 @@ class NumberConstraintSpec extends ObjectBehavior
     {
         $this->setExclusive(false);
         $this->getExclusive()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_for_numbers_lower_than_lower_boundary()
+    {
+        $this->setLowerBound(100);
+        $this->setValue(80);
+
+        $this->validate()->shouldReturn(false);
     }
 
     function it_should_fail_validation_for_numbers_on_boundary_if_exclusive_is_true()

@@ -3,10 +3,13 @@
 namespace JsonSchema\Validator\Constraint;
 
 use JsonSchema\HasEventDispatcherTrait;
+use JsonSchema\Schema\RootSchema;
 use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
+use JsonSchema\Validator\SchemaValidator;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractConstraint implements ConstraintInterface
 {
@@ -26,11 +29,10 @@ abstract class AbstractConstraint implements ConstraintInterface
 
     protected $value;
 
-    public function __construct($value, ErrorHandlerInterface $errorHandler)
+    public function __construct($value, EventDispatcherInterface $dispatcher)
     {
         $this->setValue($value);
-        $this->setEventDispatcher(new EventDispatcher());
-        $this->setErrorHandler($errorHandler);
+        $this->setEventDispatcher($dispatcher);
     }
 
     public function setValue($value)
@@ -73,5 +75,10 @@ abstract class AbstractConstraint implements ConstraintInterface
     protected function getTypeFunction($type)
     {
         return (isset($this->typeFunctions[$type])) ? $this->typeFunctions[$type] : false;
+    }
+
+    public function createRootSchema($data)
+    {
+        return new RootSchema(new SchemaValidator($this->eventDispatcher), $data);
     }
 }

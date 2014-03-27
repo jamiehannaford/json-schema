@@ -5,12 +5,13 @@ namespace spec\JsonSchema\Validator\Constraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class BooleanConstraintSpec extends ObjectBehavior
 {
-    function let(BufferErrorHandler $handler)
+    function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith(true, $handler);
+        $this->beConstructedWith(true, $dispatcher);
     }
 
     function it_is_initializable()

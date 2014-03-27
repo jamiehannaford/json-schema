@@ -2,6 +2,9 @@
 
 namespace JsonSchema\Validator\Constraint;
 
+use JsonSchema\Schema\RootSchema;
+use JsonSchema\Validator\SchemaValidator;
+
 class ArrayConstraint extends AbstractConstraint
 {
     private $nestedSchemaValidation = false;
@@ -16,7 +19,16 @@ class ArrayConstraint extends AbstractConstraint
         }
 
         if (true === $this->nestedSchemaValidation) {
-
+            foreach ($this->value as $schemaData) {
+               try {
+                    $schema = $this->createRootSchema($schemaData);
+                    if (!$schema->isValid()) {
+                        return false;
+                    }
+               } catch (\InvalidArgumentException $e) {
+                   return false;
+               }
+            }
         }
 
         if (false !== ($typeFunction = $this->getTypeFunction($this->internalType))) {

@@ -6,8 +6,30 @@ class ObjectConstraint extends AbstractConstraint
 {
     private $schemaValidation = false;
     private $nestedSchemaValidation = false;
-    private $nestedRegexValidation = false;
+    private $patternPropertiesValidation = false;
     private $dependencyValidation = false;
+
+    public function validate()
+    {
+        if (!$this->validateType()) {
+            return false;
+        }
+
+        $constraintFactory = new ConstraintFactory();
+
+
+        if (true === $this->patternPropertiesValidation) {
+            foreach ($this->value as $key => $value) {
+                $constraint  = $constraintFactory->create('StringConstraint', $key, $this->eventDispatcher);
+                $constraint->setRegexValidation(true);
+                if (!$constraint->validate()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 
     public function hasCorrectType()
     {
@@ -34,14 +56,14 @@ class ObjectConstraint extends AbstractConstraint
         return $this->nestedSchemaValidation;
     }
 
-    public function setNestedRegexValidation($choice)
+    public function setPatternPropertiesValidation($choice)
     {
-        $this->nestedRegexValidation = (bool) $choice;
+        $this->patternPropertiesValidation = (bool) $choice;
     }
 
-    public function getNestedRegexValidation()
+    public function getPatternPropertiesValidation()
     {
-        return $this->nestedRegexValidation;
+        return $this->patternPropertiesValidation;
     }
 
     public function setDependencyValidation($choice)

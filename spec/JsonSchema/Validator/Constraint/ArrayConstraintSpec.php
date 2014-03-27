@@ -2,15 +2,19 @@
 
 namespace spec\JsonSchema\Validator\Constraint;
 
+use JsonSchema\Schema\RootSchema;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
+use JsonSchema\Validator\SchemaValidator;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Prophecy\Promise\ReturnPromise;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ArrayConstraintSpec extends ObjectBehavior
 {
-    function let(BufferErrorHandler $handler)
+    function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith([], $handler);
+        $this->beConstructedWith([], $dispatcher);
     }
 
     function it_is_initializable()
@@ -61,9 +65,21 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->getMinimumCount()->shouldReturn(10);
     }
 
-    function it_should_validate_valid_schemas_when_option_set()
+    function it_should_fail_validation_if_invalid_schemas_found_when_option_set(SchemaValidator $validator, RootSchema $schema)
     {
+        $value = ['foo' => (object) [
+            'enum'  => 'invalid_enum',
+            'title' => 1356
+        ]];
 
+        $this->setValue($value);
+        $this->setNestedSchemaValidation(true);
+
+        $schema->setValidator($validator);
+        $schema->setData($value);
+        $schema->isValid()->willReturn(false);
+
+        $this->validate()->shouldReturn(false);
     }
 
     function it_should_fail_validation_if_internal_type_does_not_match_option()
@@ -83,8 +99,11 @@ class ArrayConstraintSpec extends ObjectBehavior
 
     function it_should_fail_if_count_is_less_than_min_count()
     {
+        $value = array_fill(0, 9, 'foo');
+
         $this->setMinimumCount(10);
-        $this->setValue(array_fill(0, 9, 'foo'));
+        $this->setValue($value);
+
         $this->validate()->shouldReturn(false);
     }
 }

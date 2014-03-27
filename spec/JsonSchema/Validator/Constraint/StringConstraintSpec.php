@@ -6,35 +6,13 @@ use JsonSchema\Exception\InvalidTypeException;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class StringConstraintSpec extends ObjectBehavior
 {
-    const VALUE = 'Foo';
-
-    public static function getWrongDataTypes($correctType)
+    function let(EventDispatcher $dispatcher)
     {
-        $allTypes = [
-            'string'   => 'foo',
-            'int'      => 1,
-            'float'    => 2.5,
-            'bool'     => true,
-            'object'   => new \stdClass(),
-            'array'    => [],
-            'resource' => fopen('php://temp', 'r+')
-        ];
-
-        if ($correctType == 'numeric') {
-            $correctType = ['int', 'float'];
-        }
-
-        $correctTypes = array_flip((array) $correctType);
-
-        return array_diff_key($allTypes, $correctTypes);
-    }
-
-    function let(BufferErrorHandler $handler)
-    {
-        $this->beConstructedWith(self::VALUE, $handler);
+        $this->beConstructedWith('Foo', $dispatcher);
     }
 
     function it_is_initializable()
@@ -78,5 +56,33 @@ class StringConstraintSpec extends ObjectBehavior
     {
         $this->setRegexValidation(true);
         $this->hasRegexValidation()->shouldReturn(true);
+    }
+
+    function it_should_fail_validation_for_non_regex_strings()
+    {
+        $this->setRegexValidation(true);
+        $this->setValue('#foo');
+        $this->validate()->shouldReturn(false);
+    }
+
+    public static function getWrongDataTypes($correctType)
+    {
+        $allTypes = [
+            'string'   => 'foo',
+            'int'      => 1,
+            'float'    => 2.5,
+            'bool'     => true,
+            'object'   => new \stdClass(),
+            'array'    => [],
+            'resource' => fopen('php://temp', 'r+')
+        ];
+
+        if ($correctType == 'numeric') {
+            $correctType = ['int', 'float'];
+        }
+
+        $correctTypes = array_flip((array) $correctType);
+
+        return array_diff_key($allTypes, $correctTypes);
     }
 }

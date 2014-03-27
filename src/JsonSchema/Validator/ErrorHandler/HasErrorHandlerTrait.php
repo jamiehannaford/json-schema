@@ -4,15 +4,13 @@ namespace JsonSchema\Validator\ErrorHandler;
 
 trait HasErrorHandlerTrait
 {
-    public function setErrorHandler(ErrorHandlerInterface $handler)
-    {
-        //$this->getEventDispatcher()->addSubscriber($handler);
-        $this->getEventDispatcher()->addListener('validation.error', [$handler, 'receiveError']);
-    }
-
     public function getErrors()
     {
         $listeners = $this->getEventDispatcher()->getListeners('validation.error');
+
+        if (empty($listeners)) {
+            return false;
+        }
 
         $errors = [];
 

@@ -10,6 +10,8 @@ use JsonSchema\Validator\Constraint\ConstraintInterface;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractValidator implements ValidatorInterface
 {
@@ -23,11 +25,21 @@ abstract class AbstractValidator implements ValidatorInterface
     protected $strictnessMode = StrictnessMode::ALL;
 
     public function __construct(
-        ErrorHandlerInterface $errorHandler = null,
+        EventDispatcherInterface $errorDispatcher = null,
         ConstraintFactoryInterface $constraintFactory = null
     ) {
-        $this->setErrorHandler($errorHandler ?: new BufferErrorHandler());
+        $this->setEventDispatcher($errorDispatcher ?: $this->getDefaultErrorDispatcher());
         $this->setConstraintFactory($constraintFactory ?: new ConstraintFactory());
+    }
+
+    protected function getDefaultErrorDispatcher()
+    {
+        $dispatcher = new EventDispatcher();
+        $handler = new BufferErrorHandler();
+        //$dispatcher->addSubscriber($handler);
+        $dispatcher->addListener('validation.error', [$handler, 'receiveError']);
+
+        return $dispatcher;
     }
 
     public function setData($data)
@@ -57,7 +69,7 @@ abstract class AbstractValidator implements ValidatorInterface
 
     public function createConstraint($name, $value)
     {
-        return $this->constraintFactory->create($name, $value, $this->handler);
+        return $this->constraintFactory->create($name, $value, $this->eventDispatcher);
     }
 
     public function addConstraint(ConstraintInterface $constraint)

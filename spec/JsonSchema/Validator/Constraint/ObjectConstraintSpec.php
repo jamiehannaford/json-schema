@@ -5,12 +5,13 @@ namespace spec\JsonSchema\Validator\Constraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ObjectConstraintSpec extends ObjectBehavior
 {
-    function let(\stdClass $value, BufferErrorHandler $handler)
+    function let(\stdClass $value, EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith($value, $handler);
+        $this->beConstructedWith($value, $dispatcher);
     }
 
     function it_is_initializable()
@@ -49,13 +50,43 @@ class ObjectConstraintSpec extends ObjectBehavior
 
     function it_should_support_nested_regex_validation()
     {
-        $this->setNestedRegexValidation(true);
-        $this->getNestedRegexValidation()->shouldReturn(true);
+        $this->setPatternPropertiesValidation(true);
+        $this->getPatternPropertiesValidation()->shouldReturn(true);
     }
 
     function it_should_support_custom_dependency_validation()
     {
         $this->setDependencyValidation(true);
         $this->getDependencyValidation()->shouldReturn(true);
+    }
+
+    function it_should_validate_schema()
+    {
+
+    }
+
+    function it_should_validate_nested_schema()
+    {
+
+    }
+
+    function it_should_validate_nested_regex()
+    {
+
+    }
+
+    function it_should_validate_pattern_properties_keys_as_valid_regex_strings()
+    {
+        // @todo Change to schema
+        $schema = 'foo';
+
+        $this->setPatternPropertiesValidation(true);
+        $this->setValue((object) ['#incomplete-regex' => $schema]);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_validate_pattern_properties_vals_as_valid_schemas()
+    {
+
     }
 }

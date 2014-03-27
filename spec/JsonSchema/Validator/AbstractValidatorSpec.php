@@ -5,9 +5,10 @@ namespace spec\JsonSchema\Validator;
 use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\AbstractValidator;
 use JsonSchema\Validator\Constraint\StringConstraint;
-use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class AbstractValidatorSpec extends ObjectBehavior
 {
@@ -23,9 +24,10 @@ class AbstractValidatorSpec extends ObjectBehavior
         ];
     }
 
-    function let()
+    function let(EventDispatcher $dispatcher)
     {
         $this->beAnInstanceOf('spec\JsonSchema\Validator\TestableAbstractValidator');
+        $this->beConstructedWith($dispatcher);
     }
 
     function it_is_initializable()
@@ -41,10 +43,10 @@ class AbstractValidatorSpec extends ObjectBehavior
         $this->getData()->shouldReturn($value);
     }
 
-    function it_should_set_error_handler(BufferErrorHandler $handler)
+    function it_should_have_dispatcher(EventDispatcher $dispatcher)
     {
-        $this->setErrorHandler($handler);
-        $this->getErrorHandler()->shouldReturnAnInstanceOf('JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface');
+        $this->setEventDispatcher($dispatcher);
+        $this->getEventDispatcher()->shouldReturnAnInstanceOf('Symfony\Component\EventDispatcher\EventDispatcherInterface');
     }
 
     function it_should_allow_addition_of_constraint(StringConstraint $constraint)
@@ -58,7 +60,7 @@ class AbstractValidatorSpec extends ObjectBehavior
 
     function it_should_provide_easy_instantiation_of_constraint_classes()
     {
-        $this->createConstraint('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
+         $this->createConstraint('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
     }
 
     function it_should_set_strictness_mode_as_all_by_default()
