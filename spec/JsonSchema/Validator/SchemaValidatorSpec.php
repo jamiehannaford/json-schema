@@ -18,6 +18,11 @@ class SchemaValidatorSpec extends ObjectBehavior
         $this->prophet = new Prophet();
     }
 
+    function letgo()
+    {
+        $this->prophet->checkPredictions();
+    }
+
     function it_is_initializable()
     {
         $this->shouldHaveType('JsonSchema\Validator\SchemaValidator');
@@ -200,9 +205,64 @@ class SchemaValidatorSpec extends ObjectBehavior
     function it_should_insist_on_dependencies_having_either_arrays_or_objects_as_object_properties()
     {
         $constraint = $this->prophesizeConstraint('ObjectConstraint');
-        $constraint->setDependencyValidation(true)->shouldBeCalled();
+        $constraint->setDependenciesValidation(true)->shouldBeCalled();
 
         $this->testValidationPrediction('dependencies', $constraint);
+    }
+
+    function it_should_validate_enum_as_array()
+    {
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setMinimumCount(1)->shouldBeCalled();
+        $this->testValidationPrediction('enum', $constraint);
+    }
+
+    function it_should_validate_type_as_array_of_strings_or_a_string_that_represent_primitive_types()
+    {
+        $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
+        $arrayConstraint->setMinimumCount(1)->shouldBeCalled();
+        $arrayConstraint->setInternalPrimitiveTypeValidation(true)->shouldBeCalled();
+        $arrayConstraint->setUniqueness(true)->shouldBeCalled();
+
+        $stringConstraint = $this->prophesizeConstraint('StringConstraint');
+        $stringConstraint->setPrimitiveTypeValidation(true)->shouldBeCalled();
+
+        $this->testValidationPrediction('type', [$arrayConstraint, $stringConstraint]);
+    }
+
+    function it_should_validate_allOf_as_array_with_schema_objects()
+    {
+        $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
+        $arrayConstraint->setNestedSchemaValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('allOf', $arrayConstraint);
+    }
+
+    function it_should_validate_anyOf_as_array_with_schema_objects()
+    {
+        $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
+        $arrayConstraint->setNestedSchemaValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('anyOf', $arrayConstraint);
+    }
+
+    function it_should_validate_oneOf_as_array_with_schema_objects()
+    {
+        $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
+        $arrayConstraint->setNestedSchemaValidation(true)->shouldBeCalled();
+        $this->testValidationPrediction('oneOf', $arrayConstraint);
+    }
+
+    function it_should_validate_not_as_valid_schema_object()
+    {
+        $objectConstraint = $this->prophesizeConstraint('ObjectConstraint');
+        $objectConstraint->setSchemaValidation(true);
+        $this->testValidationPrediction('not', $objectConstraint);
+    }
+
+    function it_should_validate_definitions_as_object_whose_members_are_schema_objects()
+    {
+        $objectConstraint = $this->prophesizeConstraint('ObjectConstraint');
+        $objectConstraint->setNestedSchemaValidation(true);
+        $this->testValidationPrediction('definitions', $objectConstraint);
     }
 
     /*** HELPER METHODS ***/
@@ -241,7 +301,6 @@ class SchemaValidatorSpec extends ObjectBehavior
         }
 
         $this->setConstraintFactory($factory);
-
         $this->addKeywordConstraints($name, 'Foo');
     }
 }

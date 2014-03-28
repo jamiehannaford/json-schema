@@ -5,8 +5,12 @@ namespace JsonSchema\Schema;
 use JsonSchema\ArrayAccessTrait;
 use JsonSchema\Enum\SchemaKeyword;
 use JsonSchema\Enum\StrictnessMode;
+use JsonSchema\Validator\Constraint\ConstraintFactory;
+use JsonSchema\Validator\Constraint\ConstraintFactoryInterface;
 use JsonSchema\Validator\Constraint\ConstraintInterface;
+use JsonSchema\Validator\InstanceValidator;
 use JsonSchema\Validator\ValidatorInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class AbstractSchema implements SchemaInterface
 {
@@ -70,5 +74,16 @@ abstract class AbstractSchema implements SchemaInterface
     public function isValid()
     {
         return count($this->validator->getErrorCount()) === 0;
+    }
+
+    public function validateInstanceData(
+        $data,
+        EventDispatcher $dispatcher = null,
+        ConstraintFactoryInterface $factory = null
+    ) {
+        $instanceValidator = new InstanceValidator($dispatcher, $factory);
+        $instanceValidator->setSchema($this);
+        $instanceValidator->setData($data);
+        return $instanceValidator->validate();
     }
 }

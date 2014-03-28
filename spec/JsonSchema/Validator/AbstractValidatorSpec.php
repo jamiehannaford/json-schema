@@ -154,4 +154,8 @@ class AbstractValidatorSpec extends ObjectBehavior
 
 class TestableAbstractValidator extends AbstractValidator
 {
+    public function validate()
+    {
+        return $this->doValidate();
+    }
 }

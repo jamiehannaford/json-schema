@@ -85,4 +85,20 @@ class StringConstraintSpec extends ObjectBehavior
 
         return array_diff_key($allTypes, $correctTypes);
     }
+
+    function it_should_support_primitive_type_validation()
+    {
+        $this->getPrimitiveTypeValidation()->shouldReturn(false);
+
+        $this->setPrimitiveTypeValidation(true);
+        $this->getPrimitiveTypeValidation()->shouldReturn(true);
+    }
+
+    function it_should_fail_validation_if_value_is_not_primitive_type_and_option_set()
+    {
+        $this->setPrimitiveTypeValidation(true);
+
+        $this->setValue('foo');
+        $this->validate()->shouldReturn(false);
+    }
 }

@@ -97,7 +97,7 @@ abstract class AbstractValidator implements ValidatorInterface
         return $this->strictnessMode;
     }
 
-    public function validate()
+    protected function doValidate()
     {
         if (empty($this->constraints)) {
             return true;

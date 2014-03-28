@@ -5,6 +5,7 @@ namespace JsonSchema\Validator\Constraint;
 class StringConstraint extends AbstractConstraint
 {
     private $regexValidation = false;
+    private $primitiveTypeValidation = false;
 
     public function validate()
     {
@@ -14,6 +15,12 @@ class StringConstraint extends AbstractConstraint
 
         if (true === $this->regexValidation) {
             if (false === @preg_match($this->value, null)) {
+                return false;
+            }
+        }
+
+        if (true === $this->primitiveTypeValidation) {
+            if (!$this->validatePrimitiveType($this->value)) {
                 return false;
             }
         }
@@ -34,5 +41,15 @@ class StringConstraint extends AbstractConstraint
     public function hasRegexValidation()
     {
         return $this->regexValidation;
+    }
+
+    public function getPrimitiveTypeValidation()
+    {
+        return $this->primitiveTypeValidation;
+    }
+
+    public function setPrimitiveTypeValidation($choice)
+    {
+        $this->primitiveTypeValidation = (bool) $choice;
     }
 }

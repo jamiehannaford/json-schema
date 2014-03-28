@@ -28,6 +28,8 @@ abstract class SchemaKeyword extends BaseEnum
     const DEPENDENCIES = 'dependencies';
     const ENUM = 'enum';
     const TYPE = 'type';
+    const NOT = 'not';
+    const ALL_OF = 'allOf';
     const ANY_OF = 'anyOf';
     const ONE_OF = 'oneOf';
     const DEFINITIONS = 'definitions';

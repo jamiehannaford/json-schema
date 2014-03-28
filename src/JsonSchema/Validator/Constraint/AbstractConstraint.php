@@ -24,8 +24,12 @@ abstract class AbstractConstraint implements ConstraintInterface
         'int'     => 'is_int',
         'integer' => 'is_integer',
         'float'   => 'is_float',
-        'numeric' => 'is_numeric'
+        'numeric' => 'is_numeric',
+        'number'  => 'is_numeric',
+        'null'    => 'is_null'
     ];
+
+    private $jsonPrimitiveType = ['string', 'number', 'boolean', 'null'];
 
     protected $value;
 
@@ -92,5 +96,10 @@ abstract class AbstractConstraint implements ConstraintInterface
         } catch (\InvalidArgumentException $e) {
             return false;
         }
+    }
+
+    public function validatePrimitiveType($value)
+    {
+        return isset($this->jsonPrimitiveType[$value]);
     }
 }

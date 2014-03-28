@@ -11,6 +11,7 @@ class ArrayConstraint extends AbstractConstraint
     private $internalType;
     private $uniqueness = false;
     private $minCount;
+    private $internalPrimitiveTypeValidation = false;
 
     public function validate()
     {
@@ -41,6 +42,14 @@ class ArrayConstraint extends AbstractConstraint
         if ((int) $this->minCount > 0) {
             if (count($this->value) < $this->minCount) {
                 return false;
+            }
+        }
+
+        if (true === $this->internalPrimitiveTypeValidation) {
+            foreach ($this->value as $value) {
+                if (!$this->validatePrimitiveType($value)) {
+                    return false;
+                }
             }
         }
 
@@ -90,5 +99,15 @@ class ArrayConstraint extends AbstractConstraint
     public function getMinimumCount()
     {
         return $this->minCount;
+    }
+
+    public function getInternalPrimitiveTypeValidation()
+    {
+        return $this->internalPrimitiveTypeValidation;
+    }
+
+    public function setInternalPrimitiveTypeValidation($choice)
+    {
+        $this->internalPrimitiveTypeValidation = (bool) $choice;
     }
 }

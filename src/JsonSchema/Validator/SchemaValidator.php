@@ -79,7 +79,6 @@ class SchemaValidator extends AbstractValidator
             // Object or array
             case SchemaKeyword::ITEMS:
                 $this->setStrictnessMode(StrictnessMode::ANY);
-
                 // Add array constraint + ensure nested schema validation
                 $boolConstraint = $this->createConstraint('ArrayConstraint', $value);
                 $boolConstraint->setNestedSchemaValidation(true);
@@ -102,6 +101,7 @@ class SchemaValidator extends AbstractValidator
 
             // Object whose values must be valid schemas
             case SchemaKeyword::PROPERTIES:
+            case SchemaKeyword::DEFINITIONS:
                 $constraint = $this->createConstraint('ObjectConstraint', $value);
                 $constraint->setNestedSchemaValidation(true);
                 $this->addConstraint($constraint);
@@ -120,6 +120,42 @@ class SchemaValidator extends AbstractValidator
                 $constraint->setDependenciesValidation(true);
                 $this->addConstraint($constraint);
                 break;
+
+            // Array
+            case SchemaKeyword::ENUM:
+                $constraint = $this->createConstraint('ArrayConstraint', $value);
+                $constraint->setMinimumCount(1);
+                $this->addConstraint($constraint);
+                break;
+
+            // Array whose string values, or string, which is a primitive type
+            case SchemaKeyword::TYPE:
+                $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
+                $arrayConstraint->setMinimumCount(1);
+                $arrayConstraint->setInternalPrimitiveTypeValidation(true);
+                $arrayConstraint->setUniqueness(true);
+                $this->addConstraint($arrayConstraint);
+
+                $stringConstraint = $this->createConstraint('StringConstraint', $value);
+                $stringConstraint->setPrimitiveTypeValidation(true);
+                $this->addConstraint($stringConstraint);
+                break;
+
+            // Array whose elements must be valid schemas
+            case SchemaKeyword::ALL_OF:
+            case SchemaKeyword::ANY_OF:
+            case SchemaKeyword::ONE_OF:
+                $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
+                $arrayConstraint->setNestedSchemaValidation(true);
+                $this->addConstraint($arrayConstraint);
+                break;
+
+            // Object which is valid schema
+            case SchemaKeyword::NOT:
+                $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
+                $objectConstraint->setSchemaValidation(true);
+                $this->addConstraint($objectConstraint);
+                break;
         }
     }
 
@@ -127,6 +163,11 @@ class SchemaValidator extends AbstractValidator
     {
         $this->addKeywordConstraints($name, $value);
 
-        $this->validate();
+        return $this->validate();
+    }
+
+    public function validate()
+    {
+        return $this->doValidate();
     }
 }

@@ -106,4 +106,22 @@ class ArrayConstraintSpec extends ObjectBehavior
 
         $this->validate()->shouldReturn(false);
     }
+
+    function it_should_support_internal_primitive_type_validation()
+    {
+        $this->getInternalPrimitiveTypeValidation()->shouldReturn(false);
+
+        $this->setInternalPrimitiveTypeValidation(true);
+        $this->getInternalPrimitiveTypeValidation()->shouldReturn(true);
+    }
+
+    function it_should_fail_validation_if_internal_string_is_not_primitive_type()
+    {
+        $this->setInternalPrimitiveTypeValidation(true);
+
+        $value = ['foo', 'string', 'bool'];
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
 }
