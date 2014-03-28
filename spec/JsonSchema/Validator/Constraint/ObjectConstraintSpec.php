@@ -56,37 +56,90 @@ class ObjectConstraintSpec extends ObjectBehavior
 
     function it_should_support_custom_dependency_validation()
     {
-        $this->setDependencyValidation(true);
-        $this->getDependencyValidation()->shouldReturn(true);
+        $this->setDependenciesValidation(true);
+        $this->getDependenciesValidation()->shouldReturn(true);
     }
 
     function it_should_validate_schema()
     {
+        $value = (object)['title' => 101];
+        $this->setValue($value);
 
+        $this->setSchemaValidation(true);
+
+        $this->validate()->shouldReturn(false);
     }
 
     function it_should_validate_nested_schema()
     {
+        $value = (object)[
+            'foo' => (object)['title' => 101]
+        ];
+        $this->setValue($value);
 
+        $this->setSchemaValidation(false);
+        $this->setNestedSchemaValidation(true);
+
+        $this->validate()->shouldReturn(false);
     }
 
-    function it_should_validate_nested_regex()
+    function it_should_fail_if_pattern_properties_keys_are_not_valid_regex_strings()
     {
-
-    }
-
-    function it_should_validate_pattern_properties_keys_as_valid_regex_strings()
-    {
-        // @todo Change to schema
-        $schema = 'foo';
+        $schema = (object)['title' => 'foo'];
 
         $this->setPatternPropertiesValidation(true);
         $this->setValue((object) ['#incomplete-regex' => $schema]);
         $this->validate()->shouldReturn(false);
     }
 
-    function it_should_validate_pattern_properties_vals_as_valid_schemas()
+    function it_should_fail_if_pattern_properties_vals_are_not_valid_schemas()
     {
+        $schema = (object)['title' => 101];
 
+        $this->setPatternPropertiesValidation(true);
+        $this->setValue((object) ['#complete-regex#' => $schema]);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_if_dependencies_vals_are_not_array_or_object()
+    {
+        $value = (object)['foo' => 'bar'];
+
+        $this->setValue($value);
+        $this->setDependenciesValidation(true);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_if_dependencies_object_vals_are_not_valid_schemas()
+    {
+        $value = (object)[
+            'foo' => (object)['title' => 101]
+        ];
+
+        $this->setValue($value);
+        $this->setDependenciesValidation(true);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_if_dependencies_array_vals_are_not_strings()
+    {
+        $value = (object)[
+            'foo' => [1, 2, 3]
+        ];
+
+        $this->setValue($value);
+        $this->setDependenciesValidation(true);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_if_dependencies_array_vals_do_not_have_at_least_1_member()
+    {
+        $value = (object)[
+            'foo' => []
+        ];
+
+        $this->setValue($value);
+        $this->setDependenciesValidation(true);
+        $this->validate()->shouldReturn(false);
     }
 }

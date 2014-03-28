@@ -20,12 +20,7 @@ class ArrayConstraint extends AbstractConstraint
 
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $schemaData) {
-               try {
-                    $schema = $this->createRootSchema($schemaData);
-                    if (!$schema->isValid()) {
-                        return false;
-                    }
-               } catch (\InvalidArgumentException $e) {
+               if (!$this->validateSchema($schemaData)) {
                    return false;
                }
             }

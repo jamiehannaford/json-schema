@@ -4,6 +4,10 @@ namespace spec\JsonSchema\Validator;
 
 use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\AbstractValidator;
+use JsonSchema\Validator\Constraint\ArrayConstraint;
+use JsonSchema\Validator\Constraint\BooleanConstraint;
+use JsonSchema\Validator\Constraint\NumberConstraint;
+use JsonSchema\Validator\Constraint\ObjectConstraint;
 use JsonSchema\Validator\Constraint\StringConstraint;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -74,30 +78,80 @@ class AbstractValidatorSpec extends ObjectBehavior
         $this->getStrictnessMode()->shouldReturn(StrictnessMode::ANY);
     }
 
-    function it_considers_validation_successful_if_every_constraint_passes_when_strictness_mode_is_all()
+    function it_should_pass_validation_if_no_constraints()
     {
-
+        $this->setData('foo');
+        $this->validate()->shouldReturn(true);
     }
 
-    function it_considers_validation_unsuccessful_if_any_constraint_fails_when_strictness_mode_is_all()
+    function it_considers_validation_successful_if_every_constraint_passes_when_strictness_mode_is_all(
+        ArrayConstraint $array
+    )
     {
+        // Set up collab promises
+        $array->validate()->willReturn(true);
 
+        $this->setData([]);
+
+        $this->setStrictnessMode(StrictnessMode::ALL);
+        $this->addConstraint($array);
+
+        $this->validate()->shouldReturn(true);
     }
 
-    function it_considers_validation_successful_if_any_constraint_passes_when_strictness_mode_is_any()
+    function it_considers_validation_unsuccessful_if_any_constraint_fails_when_strictness_mode_is_all(
+        StringConstraint $string, BooleanConstraint $bool
+    )
     {
+        $string->validate()->willReturn(false);
+        $bool->validate()->willReturn(true);
 
+        $this->setData(false);
+
+        $this->setStrictnessMode(StrictnessMode::ALL);
+        $this->addConstraint($string);
+        $this->addConstraint($bool);
+
+        $this->validate()->shouldReturn(false);
     }
 
-    function it_considers_validation_unsuccessful_if_all_constraints_fail_when_strictness_mode_is_any()
+    function it_considers_validation_successful_if_any_constraint_passes_when_strictness_mode_is_any(
+        ObjectConstraint $object, BooleanConstraint $bool, NumberConstraint $number
+    )
     {
+        $number->validate()->willReturn(true);
+        $object->validate()->willReturn(false);
+        $bool->validate()->willReturn(false);
 
+        $this->setData(1);
+
+        $this->setStrictnessMode(StrictnessMode::ANY);
+        $this->addConstraint($number);
+        $this->addConstraint($object);
+        $this->addConstraint($bool);
+
+        $this->validate()->shouldReturn(true);
+    }
+
+    function it_considers_validation_unsuccessful_if_all_constraints_fail_when_strictness_mode_is_any(
+        ObjectConstraint $object, BooleanConstraint $bool, NumberConstraint $number
+    )
+    {
+        $number->validate()->willReturn(false);
+        $object->validate()->willReturn(false);
+        $bool->validate()->willReturn(false);
+
+        $this->setData('Foo');
+
+        $this->setStrictnessMode(StrictnessMode::ANY);
+        $this->addConstraint($number);
+        $this->addConstraint($object);
+        $this->addConstraint($bool);
+
+        $this->validate()->shouldReturn(false);
     }
 }
 
 class TestableAbstractValidator extends AbstractValidator
 {
-    public function validate() {}
-
-    protected function declareValidationFailure($keyword, $value, $constraintName, $result) {}
 }

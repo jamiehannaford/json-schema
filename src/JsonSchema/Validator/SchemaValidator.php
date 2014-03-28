@@ -117,7 +117,7 @@ class SchemaValidator extends AbstractValidator
             // Object whose values are either valid schemas or arrays
             case SchemaKeyword::DEPENDENCIES:
                 $constraint = $this->createConstraint('ObjectConstraint', $value);
-                $constraint->setDependencyValidation(true);
+                $constraint->setDependenciesValidation(true);
                 $this->addConstraint($constraint);
                 break;
         }
@@ -126,5 +126,7 @@ class SchemaValidator extends AbstractValidator
     public function validateKeyword($name, $value)
     {
         $this->addKeywordConstraints($name, $value);
+
+        $this->validate();
     }
 }

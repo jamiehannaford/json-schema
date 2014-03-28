@@ -96,4 +96,27 @@ abstract class AbstractValidator implements ValidatorInterface
     {
         return $this->strictnessMode;
     }
+
+    public function validate()
+    {
+        if (empty($this->constraints)) {
+            return true;
+        }
+
+        $successes = $failures = 0;
+
+        foreach ($this->constraints as $constraint) {
+            if (true === $constraint->validate()) {
+                $successes += 1;
+            } else {
+                $failures += 1;
+            }
+        }
+
+        if ($this->strictnessMode == StrictnessMode::ANY) {
+            return ($successes > 0) ? true : false;
+        } else {
+            return ($failures === 0) ? true : false;
+        }
+    }
 }

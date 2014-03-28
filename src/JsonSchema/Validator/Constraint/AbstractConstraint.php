@@ -81,4 +81,16 @@ abstract class AbstractConstraint implements ConstraintInterface
     {
         return new RootSchema(new SchemaValidator($this->eventDispatcher), $data);
     }
+
+    public function validateSchema($data)
+    {
+        try {
+            $schema = $this->createRootSchema($data);
+            if (!$schema->isValid()) {
+                return false;
+            }
+        } catch (\InvalidArgumentException $e) {
+            return false;
+        }
+    }
 }

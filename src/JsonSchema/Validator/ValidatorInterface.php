@@ -10,5 +10,5 @@ interface ValidatorInterface
 
     public function setErrorHandler(ErrorHandlerInterface $handler);
 
-    //public function validate();
+    public function validate();
 }
