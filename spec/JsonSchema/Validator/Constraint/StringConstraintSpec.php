@@ -101,4 +101,37 @@ class StringConstraintSpec extends ObjectBehavior
         $this->setValue('foo');
         $this->validate()->shouldReturn(false);
     }
+
+    function it_should_support_max_length()
+    {
+        $this->setMaxLength(100);
+        $this->getMaxLength()->shouldReturn(100);
+    }
+
+    function it_should_fail_validation_if_string_length_is_higher_than_max_length()
+    {
+        $this->setMaxLength(10);
+        $this->setValue(str_repeat('a', 15));
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_support_min_length()
+    {
+        $this->setMinLength(100);
+        $this->getMinLength()->shouldReturn(100);
+    }
+
+    function it_should_default_min_length_to_0()
+    {
+        $this->getMinLength()->shouldReturn(0);
+    }
+
+    function it_should_fail_validation_if_string_length_is_lower_than_min_length()
+    {
+        $this->setMinLength(100);
+        $this->setValue(str_repeat('a', 15));
+
+        $this->validate()->shouldReturn(false);
+    }
 }

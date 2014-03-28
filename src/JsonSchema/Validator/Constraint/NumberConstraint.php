@@ -5,7 +5,9 @@ namespace JsonSchema\Validator\Constraint;
 class NumberConstraint extends AbstractConstraint
 {
     private $lowerBound;
+    private $higherBound;
     private $exclusive = true;
+    private $multipleOf = false;
 
     public function hasCorrectType()
     {
@@ -26,12 +28,18 @@ class NumberConstraint extends AbstractConstraint
             }
         }
 
+        if ((int) $this->multipleOf > 0) {
+            if ($this->value % $this->multipleOf !== 0) {
+                return false;
+            }
+        }
+
         return true;
     }
 
     public function setLowerBound($lowerBound)
     {
-        $this->lowerBound = $lowerBound;
+        $this->lowerBound = (int) $lowerBound;
     }
 
     public function getLowerBound()
@@ -47,5 +55,25 @@ class NumberConstraint extends AbstractConstraint
     public function getExclusive()
     {
         return $this->exclusive;
+    }
+
+    public function getMultipleOf()
+    {
+        return $this->multipleOf;
+    }
+
+    public function setMultipleOf($multipleOf)
+    {
+        $this->multipleOf = (int) $multipleOf;
+    }
+
+    public function setHigherBound($higherBound)
+    {
+        $this->higherBound = (int) $higherBound;
+    }
+
+    public function getHigherBound()
+    {
+        return $this->higherBound;
     }
 }

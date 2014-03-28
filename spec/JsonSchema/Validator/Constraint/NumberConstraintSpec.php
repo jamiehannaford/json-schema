@@ -26,6 +26,12 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->getLowerBound()->shouldReturn(10);
     }
 
+    function it_should_support_higher_bound()
+    {
+        $this->setHigherBound(100);
+        $this->getHigherBound()->shouldReturn(100);
+    }
+
     function it_should_pass_ints()
     {
         $this->setValue(0);
@@ -50,6 +56,11 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->getExclusive()->shouldReturn(false);
     }
 
+    function it_should_default_exclusive_to_false()
+    {
+        $this->getExclusive()->shouldReturn(false);
+    }
+
     function it_should_fail_validation_for_numbers_lower_than_lower_boundary()
     {
         $this->setLowerBound(100);
@@ -65,5 +76,24 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setValue(5);
 
         $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_support_multiple_of_validation()
+    {
+        $this->getMultipleOf()->shouldReturn(false);
+
+        $this->setMultipleOf(10);
+        $this->getMultipleOf()->shouldReturn(10);
+    }
+
+    function it_should_fail_validation_if_value_is_not_multiple_of()
+    {
+        $this->setMultipleOf(3);
+
+        $this->setValue(55);
+        $this->validate()->shouldReturn(false);
+
+        $this->setValue(300);
+        $this->validate()->shouldReturn(true);
     }
 }

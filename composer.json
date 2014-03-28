@@ -1,9 +1,9 @@
 {
     "minimum-stability": "dev",
     "autoload": {
-        "psr-0": {
-           "JsonSchema": "src/",
-           "spec\\JsonSchema": "spec/"
+        "psr-4": {
+           "JsonSchema\\": "src/JsonSchema/",
+           "spec\\JsonSchema\\": "spec/JsonSchema/"
         }
     },
     "require": {
