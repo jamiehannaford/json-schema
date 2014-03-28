@@ -9,9 +9,11 @@ class ArrayConstraint extends AbstractConstraint
 {
     private $nestedSchemaValidation = false;
     private $internalType;
-    private $uniqueness = false;
-    private $minCount;
+    private $forceUnique = false;
+    private $minCount = 0;
+    private $maxCount;
     private $internalPrimitiveTypeValidation = false;
+    private $uniqueItems = false;
 
     public function validate()
     {
@@ -35,12 +37,18 @@ class ArrayConstraint extends AbstractConstraint
             }
         }
 
-        if (true === $this->uniqueness) {
+        if (true === $this->forceUnique) {
             $this->value = array_unique($this->value);
         }
 
-        if ((int) $this->minCount > 0) {
+        if (is_int($this->minCount)) {
             if (count($this->value) < $this->minCount) {
+                return false;
+            }
+        }
+
+        if (is_int($this->maxCount)) {
+            if (count($this->value) > $this->maxCount) {
                 return false;
             }
         }
@@ -50,6 +58,12 @@ class ArrayConstraint extends AbstractConstraint
                 if (!$this->validatePrimitiveType($value)) {
                     return false;
                 }
+            }
+        }
+
+        if (true === $this->uniqueItems) {
+            if ($this->value !== array_unique($this->value)) {
+                return false;
             }
         }
 
@@ -83,12 +97,12 @@ class ArrayConstraint extends AbstractConstraint
 
     public function getUniqueness()
     {
-        return $this->uniqueness;
+        return $this->forceUnique;
     }
 
     public function setUniqueness($choice)
     {
-        $this->uniqueness = (bool) $choice;
+        $this->forceUnique = (bool) $choice;
     }
 
     public function setMinimumCount($count)
@@ -101,6 +115,16 @@ class ArrayConstraint extends AbstractConstraint
         return $this->minCount;
     }
 
+    public function setMaximumCount($count)
+    {
+        $this->maxCount = (int) $count;
+    }
+
+    public function getMaximumCount()
+    {
+        return $this->maxCount;
+    }
+
     public function getInternalPrimitiveTypeValidation()
     {
         return $this->internalPrimitiveTypeValidation;
@@ -109,5 +133,15 @@ class ArrayConstraint extends AbstractConstraint
     public function setInternalPrimitiveTypeValidation($choice)
     {
         $this->internalPrimitiveTypeValidation = (bool) $choice;
+    }
+
+    public function setUniqueItems($choice)
+    {
+        $this->uniqueItems = (bool) $choice;
+    }
+
+    public function getUniqueItems()
+    {
+        return $this->uniqueItems;
     }
 }

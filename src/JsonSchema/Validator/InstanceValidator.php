@@ -23,12 +23,12 @@ class InstanceValidator extends AbstractValidator
     {
         switch ($name) {
             case SchemaKeyword::MULTIPLE_OF:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createConstraint('NumberConstraint', $this->data);
                 $constraint->setMultipleOf($value);
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::MAXIMUM:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createConstraint('NumberConstraint', $this->data);
                 $constraint->setHigherBound($value);
                 if ($this->schema[SchemaKeyword::EXCLUSIVE_MAXIMUM] === true) {
                     $constraint->setExclusive(true);
@@ -36,7 +36,7 @@ class InstanceValidator extends AbstractValidator
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::MINIMUM:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createConstraint('NumberConstraint', $this->data);
                 $constraint->setLowerBound($value);
                 if ($this->schema[SchemaKeyword::EXCLUSIVE_MINIMUM] === true) {
                     $constraint->setExclusive(true);
@@ -44,18 +44,44 @@ class InstanceValidator extends AbstractValidator
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::MAX_LENGTH:
-                $constraint = $this->createConstraint('StringConstraint', $value);
+                $constraint = $this->createConstraint('StringConstraint', $this->data);
                 $constraint->setMaxLength($value);
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::MIN_LENGTH:
-                $constraint = $this->createConstraint('StringConstraint', $value);
+                $constraint = $this->createConstraint('StringConstraint', $this->data);
                 $constraint->setMinLength($value);
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::PATTERN:
-                $constraint = $this->createConstraint('StringConstraint', $value);
+                $constraint = $this->createConstraint('StringConstraint', $this->data);
                 $constraint->setRegexValidation(true);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::ITEMS:
+                $constraint = $this->createConstraint('ArrayConstraint', $this->data);
+                if ($this->schema[SchemaKeyword::ADDITIONAL_ITEMS] === false
+                    && is_array($this->schema[SchemaKeyword::ITEMS])
+                ) {
+                    $constraint->setMaximumCount(count($value));
+                }
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::MAX_ITEMS:
+                $constraint = $this->createConstraint('ArrayConstraint', $this->data);
+                $constraint->setMaximumCount($value);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::MIN_ITEMS:
+                $constraint = $this->createConstraint('ArrayConstraint', $this->data);
+                $constraint->setMinimumCount($value);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::UNIQUE_ITEMS:
+                $constraint = $this->createConstraint('ArrayConstraint', $this->data);
+                if ($value === true) {
+                    $constraint->setUniqueItems(true);
+                }
                 $this->addConstraint($constraint);
                 break;
         }

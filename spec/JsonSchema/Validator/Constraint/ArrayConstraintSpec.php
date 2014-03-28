@@ -65,6 +65,12 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->getMinimumCount()->shouldReturn(10);
     }
 
+    function it_should_support_max_count()
+    {
+        $this->setMaximumCount(10);
+        $this->getMaximumCount()->shouldReturn(10);
+    }
+
     function it_should_fail_validation_if_invalid_schemas_found_when_option_set(SchemaValidator $validator, RootSchema $schema)
     {
         $value = ['foo' => (object) [
@@ -107,6 +113,16 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->validate()->shouldReturn(false);
     }
 
+    function it_should_fail_if_count_is_more_than_max_count()
+    {
+        $value = array_fill(0, 11, 'foo');
+
+        $this->setMaximumCount(10);
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
     function it_should_support_internal_primitive_type_validation()
     {
         $this->getInternalPrimitiveTypeValidation()->shouldReturn(false);
@@ -121,6 +137,25 @@ class ArrayConstraintSpec extends ObjectBehavior
 
         $value = ['foo', 'string', 'bool'];
         $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_support_unique_items()
+    {
+        $this->setUniqueItems(true);
+        $this->getUniqueItems()->shouldReturn(true);
+    }
+
+    function it_should_default_unique_items_to_false()
+    {
+        $this->getUniqueItems()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_if_array_is_not_unique()
+    {
+        $this->setUniqueItems(true);
+        $this->setValue(['foo', 'bar', 'foo']);
 
         $this->validate()->shouldReturn(false);
     }

@@ -138,4 +138,110 @@ class InstanceValidatorSpec extends ObjectBehavior
 
         $this->testValidationPrediction('pattern', $constraint, $regex);
     }
+
+    /*** ARRAY TYPES ***/
+
+    function it_should_validate_if_items_is_not_present_regardless_of_additionalItems()
+    {
+        $schema = $this->makeSchema(['additionalItems' => false]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+
+        $this->testValidationPrediction('items', $constraint, null);
+    }
+
+    function it_should_validate_if_items_is_an_object_regardless_of_additionalItems()
+    {
+        $schema = $this->makeSchema(['additionalItems' => false, 'items' => new \stdClass()]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+
+        $this->testValidationPrediction('items', $constraint, null);
+    }
+
+    function it_should_validate_if_additionalItems_is_true()
+    {
+        $schema = $this->makeSchema(['additionalItems' => true]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+
+        $this->testValidationPrediction('items', $constraint, null);
+    }
+
+    function it_should_validate_if_additionalItems_is_an_object()
+    {
+        $schema = $this->makeSchema(['additionalItems' => true]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+
+        $this->testValidationPrediction('items', $constraint, null);
+    }
+
+    function it_should_validate_if_additionalItems_is_false_and_items_is_an_array()
+    {
+        $items = [1, 'foo', [], 'bar'];
+        $schema = $this->makeSchema(['additionalItems' => false, 'items' => $items]);
+
+        $schema->offsetGet('additionalItems')->willReturn(false);
+        $schema->offsetGet('items')->willReturn($items);
+
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setMaximumCount(count($items))->shouldBeCalled();
+
+        $this->testValidationPrediction('items', $constraint, $items);
+    }
+
+    function it_should_validate_if_array_count_is_less_than_or_equal_to_maxItems()
+    {
+        $maxItems = 3;
+        $schema = $this->makeSchema(['maxItems' => $maxItems]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setMaximumCount($maxItems)->shouldBeCalled();
+
+        $this->testValidationPrediction('maxItems', $constraint, $maxItems);
+    }
+
+    function it_should_validate_if_array_count_is_more_than_or_equal_to_minItems()
+    {
+        $minItems = 3;
+        $schema = $this->makeSchema(['minItems' => $minItems]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setMinimumCount($minItems)->shouldBeCalled();
+
+        $this->testValidationPrediction('minItems', $constraint, $minItems);
+    }
+
+    function it_should_validate_if_array_has_unique_items_and_uniqueItems_is_true()
+    {
+        $uniqueItems = true;
+        $schema = $this->makeSchema(['uniqueItems' => $uniqueItems]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setUniqueItems(true)->shouldBeCalled();
+
+        $this->testValidationPrediction('uniqueItems', $constraint, $uniqueItems);
+    }
+
+    function it_should_validate_if_array_has_unique_items_and_uniqueItems_is_false()
+    {
+        $uniqueItems = false;
+        $schema = $this->makeSchema(['uniqueItems' => $uniqueItems]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+        $constraint->setUniqueItems(true)->shouldNotBeCalled();
+
+        $this->testValidationPrediction('uniqueItems', $constraint, $uniqueItems);
+    }
 }
