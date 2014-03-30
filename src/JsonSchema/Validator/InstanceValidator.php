@@ -84,6 +84,16 @@ class InstanceValidator extends AbstractValidator
                 }
                 $this->addConstraint($constraint);
                 break;
+            case SchemaKeyword::MAX_PROPERTIES:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                $constraint->setMaxProperties($value);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::MIN_PROPERTIES:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                $constraint->setMinProperties($value);
+                $this->addConstraint($constraint);
+                break;
         }
     }
 

@@ -244,4 +244,42 @@ class InstanceValidatorSpec extends ObjectBehavior
 
         $this->testValidationPrediction('uniqueItems', $constraint, $uniqueItems);
     }
+
+    /*** OBJECT TYPES ***/
+
+    function it_should_validate_if_object_property_count_is_less_than_or_equal_to_max_properties()
+    {
+        $maxProperties = 5;
+        $schema = $this->makeSchema(['maxProperties' => $maxProperties]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setMaxProperties($maxProperties)->shouldBeCalled();
+
+        $this->testValidationPrediction('maxProperties', $constraint, $maxProperties);
+    }
+
+    function it_should_validate_if_object_property_count_is_more_than_or_equal_to_min_properties()
+    {
+        $minProperties = 2;
+        $schema = $this->makeSchema(['minProperties' => $minProperties]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setMinProperties($minProperties)->shouldBeCalled();
+
+        $this->testValidationPrediction('minProperties', $constraint, $minProperties);
+    }
+
+    function it_should_validate_if_object_contains_every_element_in_required_array()
+    {
+        $required = ['name', 'age', 'location'];
+        $schema = $this->makeSchema(['required' => $required]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setRequiredElementNames($required)->shouldBeCalled();
+
+        $this->testValidationPrediction('required', $constraint, $required);
+    }
 }

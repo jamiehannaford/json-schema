@@ -8,6 +8,9 @@ class ObjectConstraint extends AbstractConstraint
     private $nestedSchemaValidation = false;
     private $patternPropertiesValidation = false;
     private $dependenciesValidation = false;
+    private $maxProperties;
+    private $minProperties = 0;
+    private $requiredElementNames;
 
     public function validate()
     {
@@ -15,10 +18,10 @@ class ObjectConstraint extends AbstractConstraint
             return false;
         }
 
-        if (true === $this->schemaValidation) {
-            if (true !== $this->validateSchema($this->value)) {
-                return false;
-            }
+        if (true === $this->schemaValidation
+            && true !== $this->validateSchema($this->value)
+        ) {
+            return false;
         }
 
         if (true === $this->nestedSchemaValidation) {
@@ -64,7 +67,27 @@ class ObjectConstraint extends AbstractConstraint
             }
         }
 
+        if (is_int($this->maxProperties) && $this->getCount() > $this->maxProperties) {
+            return false;
+        }
+
+        if (is_int($this->minProperties) && $this->getCount() < $this->minProperties) {
+            return false;
+        }
+
+        if (is_array($this->requiredElementNames)) {
+            $keys = array_keys(get_object_vars($this->value));
+            if (count(array_diff($this->requiredElementNames, $keys))) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    private function getCount()
+    {
+        return count(get_object_vars($this->value));
     }
 
     public function hasCorrectType()
@@ -110,5 +133,35 @@ class ObjectConstraint extends AbstractConstraint
     public function getDependenciesValidation()
     {
         return $this->dependenciesValidation;
+    }
+
+    public function setMaxProperties($count)
+    {
+        $this->maxProperties = (int) $count;
+    }
+
+    public function getMaxProperties()
+    {
+        return $this->maxProperties;
+    }
+
+    public function setMinProperties($count)
+    {
+        $this->minProperties = (int) $count;
+    }
+
+    public function getMinProperties()
+    {
+        return $this->minProperties;
+    }
+
+    public function setRequiredElementNames(array $names)
+    {
+        $this->requiredElementNames = $names;
+    }
+
+    public function getRequiredElementNames()
+    {
+        return $this->requiredElementNames;
     }
 }

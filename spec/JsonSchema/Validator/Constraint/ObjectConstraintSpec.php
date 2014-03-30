@@ -142,4 +142,76 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setDependenciesValidation(true);
         $this->validate()->shouldReturn(false);
     }
+
+    function it_should_support_max_properties()
+    {
+        $this->setMaxProperties(5);
+        $this->getMaxProperties()->shouldReturn(5);
+    }
+
+    function it_should_fail_if_object_has_more_properties_than_maxProperties()
+    {
+        $this->setMaxProperties(2);
+
+        $value = (object) [
+            'foo' => 1, 'bar' => 2, 'baz' => 3
+        ];
+
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_support_min_properties()
+    {
+        $this->setMinProperties(3);
+        $this->getMinProperties()->shouldReturn(3);
+    }
+
+    function it_should_default_default_minProperties_to_0()
+    {
+        $this->getMinProperties()->shouldReturn(0);
+    }
+
+    function it_should_fail_if_object_has_less_properties_than_minProperties()
+    {
+        $this->setMinProperties(3);
+
+        $value = (object) [
+            'foo' => 1, 'bar' => 2
+        ];
+
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_support_required_element_names()
+    {
+        $array = ['foo', 'bar'];
+        $this->setRequiredElementNames($array);
+        $this->getRequiredElementNames()->shouldReturn($array);
+    }
+
+    function it_should_fail_if_object_does_not_contain_elements_in_required_array()
+    {
+        $required = ['name', 'age'];
+        $this->setRequiredElementNames($required);
+
+        $value = (object) ['name' => 1, 'location' => 2, 'favouriteColour' => 3];
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_pass_if_objects_contains_all_required_keys()
+    {
+        $required = ['name', 'location'];
+        $this->setRequiredElementNames($required);
+
+        $value = (object)['name' => 'foo', 'location' => 'bar', 'age' => 'baz'];
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(true);
+    }
 }
