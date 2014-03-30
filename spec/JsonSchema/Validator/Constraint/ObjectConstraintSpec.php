@@ -214,4 +214,72 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->validate()->shouldReturn(true);
     }
+
+    function it_should_support_strict_additional_properties()
+    {
+        $this->setStrictAdditionalProperties(true);
+        $this->getStrictAdditionalProperties()->shouldReturn(true);
+    }
+
+    function it_should_pass_validation_if_strict_additional_properties_check_is_not_true()
+    {
+        $object = (object)['foo' => 'bar'];
+        $this->setValue($object);
+
+        $this->validate()->shouldReturn(true);
+    }
+
+    function it_should_support_allowed_property_names()
+    {
+        $names = ['foo', 'bar'];
+        $this->setAllowedPropertyNames($names);
+        $this->getAllowedPropertyNames()->shouldReturn($names);
+    }
+
+    function it_should_deduct_items_from_object_whose_keys_match_properties()
+    {
+        $before = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $after  = (object)['foo' => 1, 'bar' => 2];
+
+        $this->setValue($before);
+
+        $this->setAllowedPropertyNames(['foo', 'bar']);
+
+        $this->deductProperties();
+
+        // @todo How do you compare two objects?
+        //$this->getValue()->shouldBeLike($after);
+
+        $this->getValue()->shouldBeAnalagousTo($after);
+    }
+
+    function it_should_deduct_items_from_object_whose_keys_pass_patternProperties_regex()
+    {
+
+    }
+
+    function it_should_fail_validation_if_additionalProperties_is_false_and_property_names_do_not_match()
+    {
+
+    }
+
+    function it_should_fail_validation_if_additionalProperties_is_false_and_patternProperty_regexes_fail()
+    {
+
+    }
+
+    public function getMatchers()
+    {
+        return [
+            'beAnalogousTo' => function ($value, $arg) {
+                    $diff = array_diff(get_object_vars($value), get_object_vars($arg));
+
+                    if (count($diff) > 0 || count($value) != count($arg)) {
+                        return false;
+                    }
+
+                    return true;
+                }
+        ];
+    }
 }

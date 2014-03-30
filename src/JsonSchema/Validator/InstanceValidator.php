@@ -94,6 +94,23 @@ class InstanceValidator extends AbstractValidator
                 $constraint->setMinProperties($value);
                 $this->addConstraint($constraint);
                 break;
+            case SchemaKeyword::REQUIRED:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                $constraint->setRequiredElementNames($value);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::ADDITIONAL_PROPERTIES:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::PROPERTIES:
+            case SchemaKeyword::PATTERN_PROPERTIES:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                if (false === $this->schema['additionalProperties']) {
+                    // @todo
+                }
+                $this->addConstraint($constraint);
+                break;
         }
     }
 

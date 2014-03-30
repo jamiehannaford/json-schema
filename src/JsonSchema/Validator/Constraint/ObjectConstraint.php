@@ -11,6 +11,9 @@ class ObjectConstraint extends AbstractConstraint
     private $maxProperties;
     private $minProperties = 0;
     private $requiredElementNames;
+    private $strictAdditionalProperties;
+
+    private $allowedPropertyNames;
 
     public function validate()
     {
@@ -163,5 +166,34 @@ class ObjectConstraint extends AbstractConstraint
     public function getRequiredElementNames()
     {
         return $this->requiredElementNames;
+    }
+
+    public function setStrictAdditionalProperties($choice)
+    {
+        $this->strictAdditionalProperties = (bool) $choice;
+    }
+
+    public function getStrictAdditionalProperties()
+    {
+        return $this->strictAdditionalProperties;
+    }
+
+    public function setAllowedPropertyNames(array $allowed)
+    {
+        $this->allowedPropertyNames = $allowed;
+    }
+
+    public function getAllowedPropertyNames()
+    {
+        return $this->allowedPropertyNames;
+    }
+
+    public function deductProperties()
+    {
+        $arrayValue = get_object_vars($this->value);
+
+        if (is_array($this->requiredElementNames)) {
+            $this->value = array_diff_key($arrayValue, array_flip($this->requiredElementNames));
+        }
     }
 }

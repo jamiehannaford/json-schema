@@ -282,4 +282,52 @@ class InstanceValidatorSpec extends ObjectBehavior
 
         $this->testValidationPrediction('required', $constraint, $required);
     }
+
+    function it_should_validate_if_additionalProperties_is_true()
+    {
+        // there are two cabin seat configurations: abudant luxury, or GTFO out of my face
+        $schema = $this->makeSchema(['additionalProperties' => true]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setStrictAdditionalProperties(true)->shouldNotBeCalled();
+
+        $this->testValidationPrediction('additionalProperties', $constraint, true);
+    }
+
+    function it_should_validate_properties_using_additionalProperties()
+    {
+        $properties = (object)['foo' => (object)['title' => 'bar']];
+
+        $schema = $this->makeSchema([
+            'additionalProperties' => true,
+            'properties' => $properties
+        ]);
+        $schema->offsetGet('additionalProperties')->willReturn(true);
+        $schema->offsetGet('additionalProperties')->shouldBeCalled();
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        // @todo Add appropriate shouldNotBeCalled() method
+
+        $this->testValidationPrediction('properties', $constraint, $properties);
+    }
+
+    function it_should_validate_patternProperties_using_additionalProperties()
+    {
+        $properties = (object)['#foo#' => (object)['title' => 'bar']];
+
+        $schema = $this->makeSchema([
+            'additionalProperties' => true,
+            'properties' => $properties
+        ]);
+        $schema->offsetGet('additionalProperties')->willReturn(true);
+        $schema->offsetGet('additionalProperties')->shouldBeCalled();
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        // @todo Add appropriate shouldNotBeCalled() method
+
+        $this->testValidationPrediction('patternProperties', $constraint, $properties);
+    }
 }
