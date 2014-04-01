@@ -107,7 +107,13 @@ class InstanceValidator extends AbstractValidator
             case SchemaKeyword::PATTERN_PROPERTIES:
                 $constraint = $this->createConstraint('ObjectConstraint', $this->data);
                 if (false === $this->schema['additionalProperties']) {
-                    // @todo
+                    $constraint->setStrictAdditionalProperties(true);
+                    if ($properties = $this->schema['properties']) {
+                        $constraint->setAllowedPropertyNames($properties);
+                    }
+                    if ($patternProperties = $this->schema['patternProperties']) {
+                        $constraint->setRegexArray($patternProperties);
+                    }
                 }
                 $this->addConstraint($constraint);
                 break;

@@ -229,11 +229,18 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->validate()->shouldReturn(true);
     }
 
-    function it_should_support_allowed_property_names()
+    function it_should_support_allowed_property_names_as_array()
     {
         $names = ['foo', 'bar'];
         $this->setAllowedPropertyNames($names);
         $this->getAllowedPropertyNames()->shouldReturn($names);
+    }
+
+    function it_should_suppoert_allowed_property_names_as_object()
+    {
+        $properties = (object)['foo' => (object)['title' => 'bar']];
+        $this->setAllowedPropertyNames($properties);
+        $this->getAllowedPropertyNames()->shouldReturn(['foo']);
     }
 
     function it_should_deduct_items_from_object_whose_keys_match_properties()
@@ -253,6 +260,13 @@ class ObjectConstraintSpec extends ObjectBehavior
         $array = ['#foo#'];
         $this->setRegexArray($array);
         $this->getRegexArray()->shouldReturn($array);
+    }
+
+    function it_should_support_regex_object()
+    {
+        $properties = (object)['#foo#' => (object)['title' => 'bar']];
+        $this->setRegexArray($properties);
+        $this->getRegexArray()->shouldReturn(['#foo#']);
     }
 
     function it_should_throw_exception_if_regex_is_invalid()

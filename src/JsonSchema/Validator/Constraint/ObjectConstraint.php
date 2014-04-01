@@ -186,8 +186,18 @@ class ObjectConstraint extends AbstractConstraint
         return $this->strictAdditionalProperties;
     }
 
-    public function setAllowedPropertyNames(array $names)
+    public function setAllowedPropertyNames($names)
     {
+        if (is_object($names)) {
+            $names = array_keys(get_object_vars($names));
+        } elseif (!is_array($names)) {
+            throw new \InvalidArgumentException(
+                "You must provide either an array whose values are permissable"
+                . " names or an object whose keys are permissable names and"
+                . " whose values are object schemas"
+            );
+        }
+
         $this->allowedPropertyNames = $names;
     }
 
@@ -219,9 +229,19 @@ class ObjectConstraint extends AbstractConstraint
         return count($arrayValue) === 0;
     }
 
-    public function setRegexArray(array $regexArray)
+    public function setRegexArray($regexes)
     {
-        foreach ($regexArray as $regex) {
+        if (is_object($regexes)) {
+            $regexes = array_keys(get_object_vars($regexes));
+        } elseif (!is_array($regexes)) {
+            throw new \InvalidArgumentException(
+                "You must provide either an array whose values are valid"
+                . " regular expressions or an object whose keys are valid "
+                . " regular expressions and whose values are object schemas"
+            );
+        }
+
+        foreach ($regexes as $regex) {
             if (true !== $this->validateRegex($regex)) {
                 throw new \InvalidArgumentException(sprintf(
                     "%s is not a valid regular expression", $regex
@@ -229,7 +249,7 @@ class ObjectConstraint extends AbstractConstraint
             }
         }
 
-        $this->regexArray = $regexArray;
+        $this->regexArray = $regexes;
     }
 
     public function getRegexArray()

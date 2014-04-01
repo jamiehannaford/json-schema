@@ -299,15 +299,23 @@ class InstanceValidatorSpec extends ObjectBehavior
         $properties = (object)['foo' => (object)['title' => 'bar']];
 
         $schema = $this->makeSchema([
-            'additionalProperties' => true,
-            'properties' => $properties
+            'additionalProperties' => false,
+            'properties'           => $properties
         ]);
-        $schema->offsetGet('additionalProperties')->willReturn(true);
+
+        $schema->offsetGet('additionalProperties')->willReturn(false);
         $schema->offsetGet('additionalProperties')->shouldBeCalled();
+
+        $schema->offsetGet('patternProperties')->willReturn(null);
+
+        $schema->offsetGet('properties')->willReturn($properties);
+        $schema->offsetGet('properties')->shouldBeCalled();
+
         $this->setSchema($schema);
 
         $constraint = $this->prophesizeConstraint('ObjectConstraint');
-        // @todo Add appropriate shouldNotBeCalled() method
+        $constraint->setStrictAdditionalProperties(true)->shouldBeCalled();
+        $constraint->setAllowedPropertyNames($properties)->shouldBeCalled();
 
         $this->testValidationPrediction('properties', $constraint, $properties);
     }
@@ -317,15 +325,23 @@ class InstanceValidatorSpec extends ObjectBehavior
         $properties = (object)['#foo#' => (object)['title' => 'bar']];
 
         $schema = $this->makeSchema([
-            'additionalProperties' => true,
-            'properties' => $properties
+            'additionalProperties' => false,
+            'patternProperties'    => $properties
         ]);
-        $schema->offsetGet('additionalProperties')->willReturn(true);
+
+        $schema->offsetGet('additionalProperties')->willReturn(false);
         $schema->offsetGet('additionalProperties')->shouldBeCalled();
+
+        $schema->offsetGet('properties')->willReturn(null);
+
+        $schema->offsetGet('patternProperties')->willReturn($properties);
+        $schema->offsetGet('patternProperties')->shouldBeCalled();
+
         $this->setSchema($schema);
 
         $constraint = $this->prophesizeConstraint('ObjectConstraint');
-        // @todo Add appropriate shouldNotBeCalled() method
+        $constraint->setStrictAdditionalProperties(true)->shouldBeCalled();
+        $constraint->setRegexArray($properties)->shouldBeCalled();
 
         $this->testValidationPrediction('patternProperties', $constraint, $properties);
     }
