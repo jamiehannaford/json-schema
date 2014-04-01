@@ -285,7 +285,6 @@ class InstanceValidatorSpec extends ObjectBehavior
 
     function it_should_validate_if_additionalProperties_is_true()
     {
-        // there are two cabin seat configurations: abudant luxury, or GTFO out of my face
         $schema = $this->makeSchema(['additionalProperties' => true]);
         $this->setSchema($schema);
 

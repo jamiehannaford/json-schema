@@ -34,6 +34,12 @@ class AbstractConstraintSpec extends ObjectBehavior
         $data = (object)['foo' => 'bar'];
         $this->createRootSchema($data)->shouldReturnAnInstanceOf('JsonSchema\Schema\SchemaInterface');
     }
+
+    function it_should_not_validate_invalid_regex()
+    {
+        $this->validateRegex('#foo')->shouldReturn(false);
+        $this->validateRegex('#foo#')->shouldReturn(true);
+    }
 }
 
 class TestableAbstractConstraint extends AbstractConstraint

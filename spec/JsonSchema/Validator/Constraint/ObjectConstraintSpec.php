@@ -245,39 +245,89 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setAllowedPropertyNames(['foo', 'bar']);
 
-        $this->deductProperties();
+        $this->validateStrictProperties()->shouldReturn(false);
+    }
 
-        // @todo How do you compare two objects?
-        //$this->getValue()->shouldBeLike($after);
+    function it_should_support_regex_array()
+    {
+        $array = ['#foo#'];
+        $this->setRegexArray($array);
+        $this->getRegexArray()->shouldReturn($array);
+    }
 
-        $this->getValue()->shouldBeAnalagousTo($after);
+    function it_should_throw_exception_if_regex_is_invalid()
+    {
+        $this->shouldThrow('InvalidArgumentException')->duringSetRegexArray(['#foo']);
     }
 
     function it_should_deduct_items_from_object_whose_keys_pass_patternProperties_regex()
     {
+        $before = (object)['foo' => 1, '123bar' => 2, 'zoo' => 3, 'yap' => 4];
 
+        $this->setValue($before);
+
+        $regexes = ['#^[f|z]oo$#', '#^[1-3]{3,}\w{3,}$#'];
+        $this->setRegexArray($regexes);
+
+        $this->validateStrictProperties()->shouldReturn(false);
     }
 
     function it_should_fail_validation_if_additionalProperties_is_false_and_property_names_do_not_match()
     {
+        $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $this->setValue($value);
 
+        $this->setStrictAdditionalProperties(true);
+        $this->setAllowedPropertyNames(['foo', 'bar']);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_pass_validation_if_property_names_match()
+    {
+        $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $this->setValue($value);
+
+        $this->setStrictAdditionalProperties(true);
+        $this->setAllowedPropertyNames(['foo', 'bar', 'baz']);
+
+        $this->validate()->shouldReturn(true);
     }
 
     function it_should_fail_validation_if_additionalProperties_is_false_and_patternProperty_regexes_fail()
     {
+        $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $this->setValue($value);
 
+        $this->setStrictAdditionalProperties(true);
+
+        $regexes = ['#^[f|z]oo$#'];
+        $this->setRegexArray($regexes);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_pass_validation_if_regex_names_match()
+    {
+        $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $this->setValue($value);
+
+        $this->setStrictAdditionalProperties(true);
+
+        $regexes = ['#^foo$#', '#^ba[r|z]$#'];
+        $this->setRegexArray($regexes);
+
+        $this->validate()->shouldReturn(true);
     }
 
     public function getMatchers()
     {
         return [
-            'beAnalogousTo' => function ($value, $arg) {
+            'relateTo' => function ($value, $arg) {
                     $diff = array_diff(get_object_vars($value), get_object_vars($arg));
-
                     if (count($diff) > 0 || count($value) != count($arg)) {
                         return false;
                     }
-
                     return true;
                 }
         ];

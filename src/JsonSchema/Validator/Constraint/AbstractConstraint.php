@@ -102,4 +102,9 @@ abstract class AbstractConstraint implements ConstraintInterface
     {
         return isset($this->jsonPrimitiveType[$value]);
     }
+
+    public function validateRegex($string)
+    {
+        return false !== @preg_match($string, null);
+    }
 }

@@ -12,6 +12,7 @@ class ObjectConstraint extends AbstractConstraint
     private $minProperties = 0;
     private $requiredElementNames;
     private $strictAdditionalProperties;
+    private $regexArray;
 
     private $allowedPropertyNames;
 
@@ -81,6 +82,13 @@ class ObjectConstraint extends AbstractConstraint
         if (is_array($this->requiredElementNames)) {
             $keys = array_keys(get_object_vars($this->value));
             if (count(array_diff($this->requiredElementNames, $keys))) {
+                return false;
+            }
+        }
+
+        if (true === $this->strictAdditionalProperties) {
+
+            if (true !== $this->validateStrictProperties()) {
                 return false;
             }
         }
@@ -178,9 +186,9 @@ class ObjectConstraint extends AbstractConstraint
         return $this->strictAdditionalProperties;
     }
 
-    public function setAllowedPropertyNames(array $allowed)
+    public function setAllowedPropertyNames(array $names)
     {
-        $this->allowedPropertyNames = $allowed;
+        $this->allowedPropertyNames = $names;
     }
 
     public function getAllowedPropertyNames()
@@ -188,12 +196,44 @@ class ObjectConstraint extends AbstractConstraint
         return $this->allowedPropertyNames;
     }
 
-    public function deductProperties()
+    public function validateStrictProperties()
     {
         $arrayValue = get_object_vars($this->value);
 
-        if (is_array($this->requiredElementNames)) {
-            $this->value = array_diff_key($arrayValue, array_flip($this->requiredElementNames));
+        foreach ($arrayValue as $key => $value) {
+            if (is_array($this->allowedPropertyNames)) {
+                if (isset(array_flip($this->allowedPropertyNames)[$key])) {
+                    unset($arrayValue[$key]);
+                }
+            }
+
+            if (is_array($this->regexArray)) {
+                foreach ($this->regexArray as $pattern) {
+                    if (preg_match($pattern, $key)) {
+                        unset($arrayValue[$key]);
+                    }
+                }
+            }
         }
+
+        return count($arrayValue) === 0;
+    }
+
+    public function setRegexArray(array $regexArray)
+    {
+        foreach ($regexArray as $regex) {
+            if (true !== $this->validateRegex($regex)) {
+                throw new \InvalidArgumentException(sprintf(
+                    "%s is not a valid regular expression", $regex
+                ));
+            }
+        }
+
+        $this->regexArray = $regexArray;
+    }
+
+    public function getRegexArray()
+    {
+        return $this->regexArray;
     }
 }

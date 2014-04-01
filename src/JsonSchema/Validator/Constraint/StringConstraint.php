@@ -16,7 +16,7 @@ class StringConstraint extends AbstractConstraint
         }
 
         if (true === $this->regexValidation) {
-            if (false === @preg_match($this->value, null)) {
+            if (true !== $this->validateRegex($this->value)) {
                 return false;
             }
         }
