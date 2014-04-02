@@ -11,6 +11,7 @@
     },
     "require-dev": {
         "phpspec/phpspec": "2.0.*@dev",
+        "behat/behat": "3.0.*@dev",
         "henrikbjorn/phpspec-code-coverage": "1.0.*@dev"
     }
 }

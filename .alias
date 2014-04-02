@@ -1,1 +1,2 @@
 alias phpspec=vendor/bin/phpspec
+alias behat=vendor/bin/behat
