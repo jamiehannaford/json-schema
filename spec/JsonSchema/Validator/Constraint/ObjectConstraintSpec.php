@@ -341,7 +341,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->getSchemaDependencies()->shouldReturn($schemas);
     }
 
-    function it_should_fail_validation_if_instance_value_does_not_validate_against_schema_dependencies()
+    function it_should_fail_validation_if_instance_value_does_not_validate_against_schema_dependencies_ex1()
     {
         $instance = (object)['people' =>
             (object)[
@@ -353,6 +353,21 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setValue($instance);
 
         $subSchema = (object)['people' => (object)['minProperties' => 4]];
+
+        $this->setDependenciesInstanceValidation(true);
+        $this->setSchemaDependencies($subSchema);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_if_instance_value_does_not_validate_against_schema_dependencies_ex2()
+    {
+        $instance = (object)[
+            'foo' => (object)['foo' => 1, 'bar' => 2]
+        ];
+        $this->setValue($instance);
+
+        $subSchema = (object)['foo' => (object)['minProperties' => 4]];
 
         $this->setDependenciesInstanceValidation(true);
         $this->setSchemaDependencies($subSchema);
@@ -381,17 +396,17 @@ class ObjectConstraintSpec extends ObjectBehavior
 
     function it_should_pass_if_instance_value_validates_successfully_against_schema_dependencies_ex2()
     {
-//        $instance = (object)['foo' => 'bar'];
-//        $this->setValue($instance);
-//
-//        $schema = (object)['foo' => (object)[
-//            'enum' => ['bar', 'baz']
-//        ]];
-//
-//        $this->setDependenciesInstanceValidation(true);
-//        $this->setSchemaDependencies($schema);
+        $instance = (object)['foo' => 'bar'];
+        $this->setValue($instance);
 
-        //$this->validate()->shouldReturn(true);
+        $schema = (object)['foo' => (object)[
+            'enum' => ['bar', 'baz']
+        ]];
+
+        $this->setDependenciesInstanceValidation(true);
+        $this->setSchemaDependencies($schema);
+
+        $this->validate()->shouldReturn(true);
     }
 
     public function getMatchers()

@@ -82,7 +82,7 @@ class ObjectConstraint extends AbstractConstraint
                     if (isset($schemas[$key])) {
                         // First create the schema object
                         $schema = $this->createRootSchema($schemas[$key]);
-var_dump($value, $schema->validateInstanceData($value));die;
+
                         // Now validate the instance against this schema
                         if (true !== $schema->validateInstanceData($value)) {
                             return false;
