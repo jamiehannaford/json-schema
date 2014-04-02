@@ -4,7 +4,7 @@ namespace JsonSchema;
 
 trait ArrayAccessTrait
 {
-    protected $data;
+    private $data;
 
     public function offsetExists($offset)
     {

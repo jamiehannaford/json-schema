@@ -2,6 +2,6 @@
 
 namespace JsonSchema\Schema;
 
-interface SchemaInterface extends \ArrayAccess
+interface SchemaInterface extends \ArrayAccess, \Iterator
 {
 } 

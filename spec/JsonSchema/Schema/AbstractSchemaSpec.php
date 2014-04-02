@@ -20,6 +20,13 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->beConstructedWith($validator, (object) ['foo' => 'bar']);
     }
 
+    function it_is_initializable()
+    {
+        $this->shouldImplement('JsonSchema\Schema\SchemaInterface');
+        $this->shouldImplement('\Iterator');
+        $this->shouldImplement('\ArrayAccess');
+    }
+
     function it_should_throw_exception_if_schema_data_is_not_object()
     {
         $this->shouldThrow('InvalidArgumentException')->duringSetData([]);
@@ -94,6 +101,22 @@ class AbstractSchemaSpec extends ObjectBehavior
         $this->setData($wrongSchemaData);
 
         $this->shouldNotBeValid();
+    }
+
+    function it_should_iterate()
+    {
+        $data = (object)['foo' => 1, 'bar' => 2];
+        $this->setData($data);
+
+        $this->rewind();
+
+        $this->key()->shouldReturn('foo');
+        $this->current()->shouldReturn(1);
+
+        $this->next();
+
+        $this->key()->shouldReturn('bar');
+        $this->current()->shouldReturn(2);
     }
 
     /*** HELPERS ***/

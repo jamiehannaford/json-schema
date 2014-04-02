@@ -5,6 +5,7 @@ namespace JsonSchema\Schema;
 use JsonSchema\ArrayAccessTrait;
 use JsonSchema\Enum\SchemaKeyword;
 use JsonSchema\Enum\StrictnessMode;
+use JsonSchema\IteratorTrait;
 use JsonSchema\Validator\Constraint\ConstraintFactory;
 use JsonSchema\Validator\Constraint\ConstraintFactoryInterface;
 use JsonSchema\Validator\Constraint\ConstraintInterface;
@@ -14,7 +15,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class AbstractSchema implements SchemaInterface
 {
-    use ArrayAccessTrait;
+    use ArrayAccessTrait, IteratorTrait;
 
     private $validator;
 
@@ -22,6 +23,7 @@ abstract class AbstractSchema implements SchemaInterface
     {
         $this->setValidator($validator);
         $this->setData($data);
+        $this->rewind();
     }
 
     public function setData($data)

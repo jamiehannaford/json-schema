@@ -1,6 +1,6 @@
 <?php
 
-namespace spec\Schema;
+namespace spec\JsonSchema\Schema;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
