@@ -1,6 +1,6 @@
 <?php
 
-namespace spec;
+namespace spec\JsonSchema;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -17,8 +17,6 @@ class ParserSpec extends ObjectBehavior
     function let()
     {
         $this->beConstructedWith($this->getFixturesFile());
-
-        $this->fixture = (object) [];
     }
 
     public function getMatchers()
@@ -32,7 +30,7 @@ class ParserSpec extends ObjectBehavior
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('Parser');
+        $this->shouldHaveType('JsonSchema\Parser');
     }
 
     function it_should_accept_strings_as_paths_where_possible()
