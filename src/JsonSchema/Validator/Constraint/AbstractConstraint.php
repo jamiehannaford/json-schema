@@ -32,11 +32,16 @@ abstract class AbstractConstraint implements ConstraintInterface
     private $jsonPrimitiveType = ['string', 'number', 'boolean', 'null'];
 
     protected $value;
+    protected $constraintFactory;
 
-    public function __construct($value, EventDispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        $value,
+        EventDispatcherInterface $dispatcher,
+        ConstraintFactoryInterface $factory = null
+    ) {
         $this->setValue($value);
         $this->setEventDispatcher($dispatcher);
+        $this->setConstraintFactory($factory ?: new ConstraintFactory());
     }
 
     public function setValue($value)
@@ -47,6 +52,11 @@ abstract class AbstractConstraint implements ConstraintInterface
     public function getValue()
     {
         return $this->value;
+    }
+
+    public function setConstraintFactory(ConstraintFactoryInterface $factory)
+    {
+        $this->constraintFactory = $factory;
     }
 
     abstract public function hasCorrectType();

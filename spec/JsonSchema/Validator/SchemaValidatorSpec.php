@@ -191,7 +191,7 @@ class SchemaValidatorSpec extends ObjectBehavior
     function it_should_insist_on_dependencies_having_either_arrays_or_objects_as_object_properties()
     {
         $constraint = $this->prophesizeConstraint('ObjectConstraint');
-        $constraint->setDependenciesValidation(true)->shouldBeCalled();
+        $constraint->setDependenciesSchemaValidation(true)->shouldBeCalled();
 
         $this->testValidationPrediction('dependencies', $constraint);
     }

@@ -117,6 +117,11 @@ class InstanceValidator extends AbstractValidator
                 }
                 $this->addConstraint($constraint);
                 break;
+            case SchemaKeyword::DEPENDENCIES:
+                $constraint = $this->createConstraint('ObjectConstraint', $this->data);
+                $constraint->setDependenciesInstanceValidation(true);
+                $this->addConstraint($constraint);
+                break;
         }
     }
 

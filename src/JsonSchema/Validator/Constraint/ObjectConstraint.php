@@ -2,17 +2,21 @@
 
 namespace JsonSchema\Validator\Constraint;
 
+use JsonSchema\Schema\RootSchema;
+
 class ObjectConstraint extends AbstractConstraint
 {
     private $schemaValidation = false;
     private $nestedSchemaValidation = false;
     private $patternPropertiesValidation = false;
-    private $dependenciesValidation = false;
+    private $dependenciesSchemaValidation = false;
+    private $dependenciesInstanceValidation;
     private $maxProperties;
     private $minProperties = 0;
     private $requiredElementNames;
     private $strictAdditionalProperties;
     private $regexArray;
+    private $schemaDependencies;
 
     private $allowedPropertyNames;
 
@@ -36,19 +40,17 @@ class ObjectConstraint extends AbstractConstraint
             }
         }
 
-        $constraintFactory = new ConstraintFactory();
-
         if (true === $this->patternPropertiesValidation) {
             foreach ($this->value as $key => $value) {
                 // Check that keys are valid regex strings
-                $constraint  = $constraintFactory->create('StringConstraint', $key, $this->eventDispatcher);
+                $constraint  = $this->constraintFactory->create('StringConstraint', $key, $this->eventDispatcher);
                 $constraint->setRegexValidation(true);
                 if (!$constraint->validate()) {
                     return false;
                 }
 
                 // Check that vals are valid schemas
-                $constraint = $constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
+                $constraint = $this->constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
                 $constraint->setSchemaValidation(true);
                 if (!$constraint->validate()) {
                     return false;
@@ -56,17 +58,38 @@ class ObjectConstraint extends AbstractConstraint
             }
         }
 
-        if (true === $this->dependenciesValidation) {
+        // Validate schema `dependencies` value
+        if (true === $this->dependenciesSchemaValidation) {
             foreach ($this->value as $value) {
-                $arrayConstraint = $constraintFactory->create('ArrayConstraint', $value, $this->eventDispatcher);
+                $arrayConstraint = $this->constraintFactory->create('ArrayConstraint', $value, $this->eventDispatcher);
                 $arrayConstraint->setInternalType('string');
                 $arrayConstraint->setMinimumCount(1);
 
-                $objectConstraint = $constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
+                $objectConstraint = $this->constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
                 $objectConstraint->setSchemaValidation(true);
 
                 if (!$arrayConstraint->validate() && !$objectConstraint->validate()) {
                     return false;
+                }
+            }
+        }
+
+        // Validate instance `dependencies` value
+        if (true === $this->dependenciesInstanceValidation) {
+            if (!empty($this->schemaDependencies)) {
+                $schemas = get_object_vars($this->schemaDependencies);
+                foreach ($this->value as $key => $value) {
+                    if (isset($schemas[$key])) {
+                        // First create the schema object
+                        $schema = $this->createRootSchema($schemas[$key]);
+var_dump($value, $schema->validateInstanceData($value));die;
+                        // Now validate the instance against this schema
+                        if (true !== $schema->validateInstanceData($value)) {
+                            return false;
+                        }
+
+
+                    }
                 }
             }
         }
@@ -136,14 +159,24 @@ class ObjectConstraint extends AbstractConstraint
         return $this->patternPropertiesValidation;
     }
 
-    public function setDependenciesValidation($choice)
+    public function setDependenciesSchemaValidation($choice)
     {
-        $this->dependenciesValidation = (bool) $choice;
+        $this->dependenciesSchemaValidation = (bool) $choice;
     }
 
-    public function getDependenciesValidation()
+    public function getDependenciesSchemaValidation()
     {
-        return $this->dependenciesValidation;
+        return $this->dependenciesSchemaValidation;
+    }
+
+    public function setDependenciesInstanceValidation($choice)
+    {
+        $this->dependenciesInstanceValidation = (bool) $choice;
+    }
+
+    public function getDependenciesInstanceValidation()
+    {
+        return $this->dependenciesInstanceValidation;
     }
 
     public function setMaxProperties($count)
@@ -255,5 +288,15 @@ class ObjectConstraint extends AbstractConstraint
     public function getRegexArray()
     {
         return $this->regexArray;
+    }
+
+    public function setSchemaDependencies($schemaDependencies)
+    {
+        $this->schemaDependencies = $schemaDependencies;
+    }
+
+    public function getSchemaDependencies()
+    {
+        return $this->schemaDependencies;
     }
 }

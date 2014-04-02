@@ -345,4 +345,18 @@ class InstanceValidatorSpec extends ObjectBehavior
 
         $this->testValidationPrediction('patternProperties', $constraint, $properties);
     }
+
+    function it_should_validate_schema_dependencies()
+    {
+        $schemaDependencies = (object)['foo' => (object)['enum' => ['foo', 'bar', 'baz']]];
+
+        $schema = $this->makeSchema(['dependencies' => $schemaDependencies]);
+
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setDependenciesInstanceValidation(true)->shouldBeCalled();
+
+        $this->testValidationPrediction('dependencies', $constraint, $schemaDependencies);
+    }
 }
