@@ -8,4 +8,9 @@ class BooleanConstraint extends AbstractConstraint
     {
         return is_bool($this->value);
     }
+
+    public function validateConstraint()
+    {
+        // no custom logic
+    }
 }

@@ -14,12 +14,8 @@ class NumberConstraint extends AbstractConstraint
         return is_numeric($this->value);
     }
 
-    public function validate()
+    public function validateConstraint()
     {
-        if (!$this->validateType()) {
-            return false;
-        }
-
         if ($this->lowerBound) {
             if ($this->exclusive) {
                 return $this->value > $this->lowerBound;

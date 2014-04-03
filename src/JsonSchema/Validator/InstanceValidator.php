@@ -120,6 +120,13 @@ class InstanceValidator extends AbstractValidator
             case SchemaKeyword::DEPENDENCIES:
                 $constraint = $this->createConstraint('ObjectConstraint', $this->data);
                 $constraint->setDependenciesInstanceValidation(true);
+
+                if (is_object($value)) {
+                    $constraint->setSchemaDependencies($value);
+                } elseif (is_array($value)) {
+                    $constraint->setAllowedPropertyNames($value);
+                }
+
                 $this->addConstraint($constraint);
                 break;
         }

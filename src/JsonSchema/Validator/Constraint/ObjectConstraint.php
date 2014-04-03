@@ -17,15 +17,10 @@ class ObjectConstraint extends AbstractConstraint
     private $strictAdditionalProperties;
     private $regexArray;
     private $schemaDependencies;
-
     private $allowedPropertyNames;
 
-    public function validate()
+    public function validateConstraint()
     {
-        if (!$this->validateType()) {
-            return false;
-        }
-
         if (true === $this->schemaValidation
             && true !== $this->validateSchema($this->value)
         ) {
@@ -76,6 +71,7 @@ class ObjectConstraint extends AbstractConstraint
 
         // Validate instance `dependencies` value
         if (true === $this->dependenciesInstanceValidation) {
+            // Schema dependencies
             if (!empty($this->schemaDependencies)) {
                 $schemas = get_object_vars($this->schemaDependencies);
                 foreach ($this->value as $key => $value) {
@@ -87,9 +83,15 @@ class ObjectConstraint extends AbstractConstraint
                         if (true !== $schema->validateInstanceData($value)) {
                             return false;
                         }
-
-
                     }
+                }
+            }
+
+            // Property dependencies
+            if (is_array($this->allowedPropertyNames)) {
+                $properties = array_keys(get_object_vars($this->value));
+                if (count(array_diff($this->allowedPropertyNames, $properties))) {
+                    return false;
                 }
             }
         }
@@ -298,5 +300,15 @@ class ObjectConstraint extends AbstractConstraint
     public function getSchemaDependencies()
     {
         return $this->schemaDependencies;
+    }
+
+    public function setPropertyDependencies($argument1)
+    {
+        // TODO: write logic here
+    }
+
+    public function getPropertyDependencies()
+    {
+        // TODO: write logic here
     }
 }

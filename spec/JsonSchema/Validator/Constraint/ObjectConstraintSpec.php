@@ -409,6 +409,28 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->validate()->shouldReturn(true);
     }
 
+    function it_should_fail_validation_if_object_does_not_contain_property_dependencies()
+    {
+        $this->setDependenciesInstanceValidation(true);
+        $this->setAllowedPropertyNames(['foo', 'bar']);
+
+        $value = (object)['foo' => 1, 'baz' => 2];
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_pass_validation_if_object_contains_required_property_dependencies()
+    {
+        $this->setDependenciesInstanceValidation(true);
+        $this->setAllowedPropertyNames(['foo', 'bar']);
+
+        $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
+        $this->setValue($value);
+
+        $this->validate()->shouldReturn(true);
+    }
+
     public function getMatchers()
     {
         return [

@@ -356,7 +356,35 @@ class InstanceValidatorSpec extends ObjectBehavior
 
         $constraint = $this->prophesizeConstraint('ObjectConstraint');
         $constraint->setDependenciesInstanceValidation(true)->shouldBeCalled();
+        $constraint->setSchemaDependencies($schemaDependencies)->shouldBeCalled();
 
         $this->testValidationPrediction('dependencies', $constraint, $schemaDependencies);
+    }
+
+    function it_should_validate_property_dependencies()
+    {
+        $propertyDependencies = ['foo', 'bar'];
+
+        $schema = $this->makeSchema(['dependencies' => $propertyDependencies]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setDependenciesInstanceValidation(true)->shouldBeCalled();
+        $constraint->setAllowedPropertyNames($propertyDependencies)->shouldBeCalled();
+
+        $this->testValidationPrediction('dependencies', $constraint, $propertyDependencies);
+    }
+
+    function it_should_validate_enum()
+    {
+        $enum = ['foo', 'bar'];
+
+        $schema = $this->makeSchema(['enum' => $enum]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint->setEnumValues($enum)->shouldBeCalled();
+
+        $this->testValidationPrediction('enum', $constraint, $enum);
     }
 }

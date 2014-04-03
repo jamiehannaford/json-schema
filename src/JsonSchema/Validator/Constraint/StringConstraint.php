@@ -9,12 +9,8 @@ class StringConstraint extends AbstractConstraint
     private $maxLength;
     private $minLength = 0;
 
-    public function validate()
+    public function validateConstraint()
     {
-        if (!$this->validateType()) {
-            return false;
-        }
-
         if (true === $this->regexValidation) {
             if (true !== $this->validateRegex($this->value)) {
                 return false;

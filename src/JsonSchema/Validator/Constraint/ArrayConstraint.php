@@ -15,12 +15,8 @@ class ArrayConstraint extends AbstractConstraint
     private $internalPrimitiveTypeValidation = false;
     private $uniqueItems = false;
 
-    public function validate()
+    public function validateConstraint()
     {
-        if (!$this->validateType()) {
-            return false;
-        }
-
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $schemaData) {
                if (!$this->validateSchema($schemaData)) {

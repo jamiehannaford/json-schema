@@ -12,7 +12,7 @@ interface ConstraintInterface
 
     public function getEventDispatcher();
 
-    public function validate();
+    public function validateConstraint();
 
     public function validateType();
 }
