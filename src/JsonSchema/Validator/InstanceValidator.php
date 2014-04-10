@@ -129,7 +129,30 @@ class InstanceValidator extends AbstractValidator
 
                 $this->addConstraint($constraint);
                 break;
+            case SchemaKeyword::ENUM:
+                $constraint = $this->createConstraint('GenericConstraint', $this->data);
+                $constraint->setEnumValues($value);
+                $this->addConstraint($constraint);
+                break;
+            case SchemaKeyword::TYPE:
+                if (is_array($value)) {
+                    foreach ($value as $indValue) {
+                        $name = $this->createConstraintName($indValue);
+                        $constraint = $this->createConstraint($name, $this->data);
+                    }
+                } else {
+                    $name = $this->createConstraintName($value);
+                    $constraint = $this->createConstraint($name, $this->data);
+                }
+
+                $this->addConstraint($constraint);
+                break;
         }
+    }
+
+    private function createConstraintName($value)
+    {
+        return sprintf("%sConstraint", ucfirst($value));
     }
 
     public function validate()

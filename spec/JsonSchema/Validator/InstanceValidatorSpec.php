@@ -382,9 +382,34 @@ class InstanceValidatorSpec extends ObjectBehavior
         $schema = $this->makeSchema(['enum' => $enum]);
         $this->setSchema($schema);
 
-        $constraint = $this->prophesizeConstraint('ObjectConstraint');
+        $constraint = $this->prophesizeConstraint('GenericConstraint');
         $constraint->setEnumValues($enum)->shouldBeCalled();
 
         $this->testValidationPrediction('enum', $constraint, $enum);
+    }
+
+    function it_should_validate_type_strings()
+    {
+        $type = 'array';
+
+        $schema = $this->makeSchema(['type' => $type]);
+        $this->setSchema($schema);
+
+        $constraint = $this->prophesizeConstraint('ArrayConstraint');
+
+        $this->testValidationPrediction('type', $constraint, $type);
+    }
+
+    function it_should_validate_type_arrays()
+    {
+        $types = ['array', 'string'];
+
+        $schema = $this->makeSchema(['type' => $types]);
+        $this->setSchema($schema);
+
+        $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
+        $stringConstraint = $this->prophesizeConstraint('StringConstraint');
+
+        $this->testValidationPrediction('type', [$arrayConstraint, $stringConstraint], $types);
     }
 }

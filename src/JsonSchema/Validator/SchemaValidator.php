@@ -130,6 +130,8 @@ class SchemaValidator extends AbstractValidator
 
             // Array whose string values, or string, which is a primitive type
             case SchemaKeyword::TYPE:
+                $this->setStrictnessMode(StrictnessMode::ANY);
+
                 $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
                 $arrayConstraint->setMinimumCount(1);
                 $arrayConstraint->setInternalPrimitiveTypeValidation(true);
