@@ -59,9 +59,9 @@ class Parser
 
         $validator = new SchemaValidator();
 
-        $schema = new RootSchema($validator);
-        $schema->populate($this->jsonData);
+        // @todo We should support streaming JSON parsing
+        $content = json_decode(stream_get_contents($this->jsonData));
 
-        return $schema;
+        return new RootSchema($validator, $content);
     }
 }

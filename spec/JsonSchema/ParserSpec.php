@@ -9,23 +9,9 @@ class ParserSpec extends ObjectBehavior
 {
     const COMPUTE_FIXTURES = 'compute.json';
 
-    protected function getFixturesFile($path = self::COMPUTE_FIXTURES)
-    {
-        return dirname(__DIR__) . '/fixtures/' . $path;
-    }
-
     function let()
     {
         $this->beConstructedWith($this->getFixturesFile());
-    }
-
-    public function getMatchers()
-    {
-        return [
-            'haveStreamUri' => function($stream, $uri) {
-                return stream_get_meta_data($stream)['uri'] == $uri;
-            }
-        ];
     }
 
     function it_is_initializable()
@@ -66,6 +52,20 @@ class ParserSpec extends ObjectBehavior
 
     function it_should_return_a_json_schema_object()
     {
-        $this->parse()->shouldReturnAnInstanceOf('JsonSchema');
+        $this->parse()->shouldReturnAnInstanceOf('JsonSchema\Schema\RootSchema');
+    }
+
+    protected function getFixturesFile($path = self::COMPUTE_FIXTURES)
+    {
+        return dirname(__DIR__) . '/../fixtures/' . $path;
+    }
+
+    public function getMatchers()
+    {
+        return [
+            'haveStreamUri' => function($stream, $uri) {
+                    return stream_get_meta_data($stream)['uri'] == $uri;
+                }
+        ];
     }
 }
