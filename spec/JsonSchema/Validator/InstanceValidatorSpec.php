@@ -402,13 +402,13 @@ class InstanceValidatorSpec extends ObjectBehavior
 
     function it_should_validate_type_arrays()
     {
-        $types = ['array', 'string'];
+        $types = ['array', 'integer'];
 
         $schema = $this->makeSchema(['type' => $types]);
         $this->setSchema($schema);
 
         $arrayConstraint = $this->prophesizeConstraint('ArrayConstraint');
-        $stringConstraint = $this->prophesizeConstraint('StringConstraint');
+        $stringConstraint = $this->prophesizeConstraint('NumberConstraint');
 
         $this->testValidationPrediction('type', [$arrayConstraint, $stringConstraint], $types);
     }

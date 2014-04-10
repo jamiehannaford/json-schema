@@ -2,13 +2,15 @@
 
 namespace spec\JsonSchema\Validator\Constraint;
 
-use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ObjectConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     function let(\stdClass $value, EventDispatcher $dispatcher)
     {
         $this->beConstructedWith($value, $dispatcher);
@@ -67,7 +69,9 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setSchemaValidation(true);
 
+        $this->testFailureDispatch($value, 'Object is not a valid schema');
         $this->validate()->shouldReturn(false);
+
     }
 
     function it_should_validate_nested_schema()
@@ -80,15 +84,19 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setSchemaValidation(false);
         $this->setNestedSchemaValidation(true);
 
+        $this->testFailureDispatch($value, 'Object contains invalid nested schemas');
         $this->validate()->shouldReturn(false);
     }
 
     function it_should_fail_if_pattern_properties_keys_are_not_valid_regex_strings()
     {
         $schema = (object)['title' => 'foo'];
+        $invalid = '#incomplete-regex';
 
         $this->setPatternPropertiesValidation(true);
-        $this->setValue((object) ['#incomplete-regex' => $schema]);
+        $this->setValue((object) [$invalid => $schema]);
+
+        $this->testFailureDispatch($invalid, 'Object contains keys which are invalid regular expressions');
         $this->validate()->shouldReturn(false);
     }
 
@@ -98,6 +106,8 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setPatternPropertiesValidation(true);
         $this->setValue((object) ['#complete-regex#' => $schema]);
+
+        $this->testFailureDispatch($schema, 'Object contains values which are invalid schemas');
         $this->validate()->shouldReturn(false);
     }
 
@@ -107,6 +117,8 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
+
+        $this->testFailureDispatch('bar', 'Object values need to be either objects or array');
         $this->validate()->shouldReturn(false);
     }
 
@@ -118,6 +130,8 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
+
+        $this->testFailureDispatch($value, 'Objects provided as values must be valid schemas');
         $this->validate()->shouldReturn(false);
     }
 
@@ -129,6 +143,8 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
+
+        $this->testFailureDispatch([1, 2, 3], 'The values of this array are of an invalid type', 'string');
         $this->validate()->shouldReturn(false);
     }
 
@@ -140,6 +156,8 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
+
+        $this->testFailureDispatch([], 'Array does not contain enough elements', 1);
         $this->validate()->shouldReturn(false);
     }
 

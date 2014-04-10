@@ -4,8 +4,10 @@ namespace JsonSchema\Validator\Constraint;
 
 use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Schema\RootSchema;
+use JsonSchema\Schema\SchemaInterface;
 use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
+use JsonSchema\Validator\FailureEvent;
 use JsonSchema\Validator\SchemaValidator;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -38,6 +40,7 @@ abstract class AbstractConstraint implements ConstraintInterface
     protected $constraintFactory;
     protected $enumValues;
     protected $type;
+    protected $logging;
 
     public function __construct(
         $value,
@@ -66,15 +69,6 @@ abstract class AbstractConstraint implements ConstraintInterface
 
     abstract public function hasCorrectType();
 
-    protected function registerError($errorType, $expectedValue = null)
-    {
-        $this->getEventDispatcher()->dispatch('validation.error', new Event([
-            'value'     => $this->value,
-            'errorType' => $errorType,
-            'expected'  => $expectedValue
-        ]));
-    }
-
     private function validateIndividualType($type)
     {
         if (false === ($function = $this->getTypeFunction($type))) {
@@ -89,7 +83,7 @@ abstract class AbstractConstraint implements ConstraintInterface
         if ($this->type) {
             if (is_string($this->type)) {
                 if (false === $this->validateIndividualType($this->type)) {
-                    return false;
+                    return $this->logFailure("Type is incorrect", $this->type);
                 }
             } elseif (is_array($this->type)) {
                 $success = false;
@@ -99,7 +93,7 @@ abstract class AbstractConstraint implements ConstraintInterface
                     }
                 }
                 if (!$success) {
-                    return false;
+                    return $this->logFailure("Type is incorrect", implode(',', $this->type));
                 }
             }
 
@@ -109,7 +103,7 @@ abstract class AbstractConstraint implements ConstraintInterface
             return true;
         }
 
-        $this->registerError('wrongValue');
+        $this->logFailure('Type is incorrect');
 
         return false;
     }
@@ -122,7 +116,7 @@ abstract class AbstractConstraint implements ConstraintInterface
 
         if (is_array($this->enumValues)) {
             if (!in_array($this->value, $this->enumValues)) {
-                return false;
+                return $this->logFailure("Value does not match enum array");
             }
         }
 
@@ -146,7 +140,7 @@ abstract class AbstractConstraint implements ConstraintInterface
             if (!$schema->isValid()) {
                 return false;
             }
-        } catch (\InvalidArgumentException $e) {
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -198,5 +192,28 @@ abstract class AbstractConstraint implements ConstraintInterface
     public function getType()
     {
         return $this->type;
+    }
+
+    public function logFailure($message, $expectation = null, $value = null)
+    {
+        if ($this->logging !== false) {
+            $this->getEventDispatcher()->dispatch('validation.error', new FailureEvent([
+                'value'    => ($value !== null) ? $value : $this->value,
+                'message'  => $message,
+                'expected' => $expectation
+            ]));
+        }
+
+        return false;
+    }
+
+    public function setLogging($choice)
+    {
+        $this->logging = (bool) $choice;
+    }
+
+    public function getLogging()
+    {
+        return $this->logging;
     }
 }

@@ -8,10 +8,13 @@ use JsonSchema\Validator\SchemaValidator;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Prophecy\Promise\ReturnPromise;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ArrayConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     function let(EventDispatcher $dispatcher)
     {
         $this->beConstructedWith([], $dispatcher);
@@ -85,13 +88,17 @@ class ArrayConstraintSpec extends ObjectBehavior
         $schema->setData($value);
         $schema->isValid()->willReturn(false);
 
-        $this->validate()->shouldReturn(false);
+        $this->testFailureDispatch($value, "The nested schemas provided were invalid");
+        $this->validateConstraint()->shouldReturn(false);
     }
 
     function it_should_fail_validation_if_internal_type_does_not_match_option()
     {
+        $value = ['foo', true, false];
         $this->setInternalType('boolean');
-        $this->setValue(['foo', true, false]);
+        $this->setValue($value);
+
+        $this->testFailureDispatch($value, "The values of this array are of an invalid type", 'boolean');
         $this->validate()->shouldReturn(false);
     }
 
@@ -110,6 +117,7 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->setMinimumCount(10);
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Array does not contain enough elements', 10);
         $this->validate()->shouldReturn(false);
     }
 
@@ -120,6 +128,7 @@ class ArrayConstraintSpec extends ObjectBehavior
         $this->setMaximumCount(10);
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Array contains more elements than is allowed', 10);
         $this->validate()->shouldReturn(false);
     }
 
@@ -138,6 +147,7 @@ class ArrayConstraintSpec extends ObjectBehavior
         $value = ['foo', 'string', 'bool'];
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Array elements do not match expected type');
         $this->validate()->shouldReturn(false);
     }
 
@@ -154,9 +164,11 @@ class ArrayConstraintSpec extends ObjectBehavior
 
     function it_should_fail_validation_if_array_is_not_unique()
     {
+        $value = ['foo', 'bar', 'foo'];
         $this->setUniqueItems(true);
-        $this->setValue(['foo', 'bar', 'foo']);
+        $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Array is not unique');
         $this->validate()->shouldReturn(false);
     }
 }

@@ -5,10 +5,13 @@ namespace spec\JsonSchema\Validator\Constraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class BooleanConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     function let(EventDispatcher $dispatcher)
     {
         $this->beConstructedWith(true, $dispatcher);
@@ -31,6 +34,8 @@ class BooleanConstraintSpec extends ObjectBehavior
     {
         $this->setValue('Foo');
         $this->shouldNotHaveCorrectType();
+
+        $this->testFailureDispatch('Foo', 'Type is incorrect');
         $this->validate()->shouldReturn(false);
     }
 }

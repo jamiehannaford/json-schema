@@ -24,13 +24,13 @@ class ObjectConstraint extends AbstractConstraint
         if (true === $this->schemaValidation
             && true !== $this->validateSchema($this->value)
         ) {
-            return false;
+            return $this->logFailure('Object is not a valid schema');
         }
 
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $value) {
                 if (true !== $this->validateSchema($value)) {
-                    return false;
+                    return $this->logFailure('Object contains invalid nested schemas');
                 }
             }
         }
@@ -41,14 +41,12 @@ class ObjectConstraint extends AbstractConstraint
                 $constraint  = $this->constraintFactory->create('StringConstraint', $key, $this->eventDispatcher);
                 $constraint->setRegexValidation(true);
                 if (!$constraint->validate()) {
-                    return false;
+                    return $this->logFailure('Object contains keys which are invalid regular expressions', null, $key);
                 }
 
                 // Check that vals are valid schemas
-                $constraint = $this->constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
-                $constraint->setSchemaValidation(true);
-                if (!$constraint->validate()) {
-                    return false;
+                if (!$this->validateSchema($value)) {
+                    return $this->logFailure('Object contains values which are invalid schemas', null, $value);
                 }
             }
         }
@@ -56,15 +54,17 @@ class ObjectConstraint extends AbstractConstraint
         // Validate schema `dependencies` value
         if (true === $this->dependenciesSchemaValidation) {
             foreach ($this->value as $value) {
-                $arrayConstraint = $this->constraintFactory->create('ArrayConstraint', $value, $this->eventDispatcher);
-                $arrayConstraint->setInternalType('string');
-                $arrayConstraint->setMinimumCount(1);
-
-                $objectConstraint = $this->constraintFactory->create('ObjectConstraint', $value, $this->eventDispatcher);
-                $objectConstraint->setSchemaValidation(true);
-
-                if (!$arrayConstraint->validate() && !$objectConstraint->validate()) {
-                    return false;
+                if (is_array($value)) {
+                    $arrayConstraint = $this->constraintFactory->create('ArrayConstraint', $value, $this->eventDispatcher);
+                    $arrayConstraint->setInternalType('string');
+                    $arrayConstraint->setMinimumCount(1);
+                    if (!$arrayConstraint->validate()) {
+                        return false;
+                    }
+                } elseif (is_object($value) && !$this->validateSchema($value)) {
+                    return $this->logFailure('Objects provided as values must be valid schemas');
+                } else {
+                    return $this->logFailure('Object values need to be either objects or array', null, $value);
                 }
             }
         }
@@ -111,11 +111,8 @@ class ObjectConstraint extends AbstractConstraint
             }
         }
 
-        if (true === $this->strictAdditionalProperties) {
-
-            if (true !== $this->validateStrictProperties()) {
-                return false;
-            }
+        if (true === $this->strictAdditionalProperties && true !== $this->validateStrictProperties()) {
+            return false;
         }
 
         return true;

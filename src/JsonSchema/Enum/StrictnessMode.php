@@ -1,10 +1,8 @@
 <?php
 
-
 namespace JsonSchema\Enum;
 
-
-class StrictnessMode 
+abstract class StrictnessMode extends BaseEnum
 {
     const ALL  = 'and';
     const ANY  = 'any';

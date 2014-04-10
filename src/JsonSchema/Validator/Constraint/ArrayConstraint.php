@@ -20,7 +20,7 @@ class ArrayConstraint extends AbstractConstraint
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $schemaData) {
                if (!$this->validateSchema($schemaData)) {
-                   return false;
+                   return $this->logFailure("The nested schemas provided were invalid");
                }
             }
         }
@@ -28,7 +28,7 @@ class ArrayConstraint extends AbstractConstraint
         if (false !== ($typeFunction = $this->getTypeFunction($this->internalType))) {
             foreach ($this->value as $value) {
                 if (false === call_user_func($typeFunction, $value)) {
-                    return false;
+                    return $this->logFailure("The values of this array are of an invalid type", $this->internalType);
                 }
             }
         }
@@ -37,30 +37,24 @@ class ArrayConstraint extends AbstractConstraint
             $this->value = array_unique($this->value);
         }
 
-        if (is_int($this->minCount)) {
-            if (count($this->value) < $this->minCount) {
-                return false;
-            }
+        if (is_int($this->minCount) && count($this->value) < $this->minCount) {
+            return $this->logFailure('Array does not contain enough elements', $this->minCount);
         }
 
-        if (is_int($this->maxCount)) {
-            if (count($this->value) > $this->maxCount) {
-                return false;
-            }
+        if (is_int($this->maxCount) && count($this->value) > $this->maxCount) {
+            return $this->logFailure('Array contains more elements than is allowed', $this->maxCount);
         }
 
         if (true === $this->internalPrimitiveTypeValidation) {
             foreach ($this->value as $value) {
                 if (!$this->validatePrimitiveType($value)) {
-                    return false;
+                    return $this->logFailure('Array elements do not match expected type');
                 }
             }
         }
 
-        if (true === $this->uniqueItems) {
-            if ($this->value !== array_unique($this->value)) {
-                return false;
-            }
+        if (true === $this->uniqueItems && $this->value !== array_unique($this->value)) {
+            return $this->logFailure('Array is not unique');
         }
 
         return true;

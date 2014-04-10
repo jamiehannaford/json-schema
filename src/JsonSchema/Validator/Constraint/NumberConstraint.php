@@ -6,7 +6,7 @@ class NumberConstraint extends AbstractConstraint
 {
     private $lowerBound;
     private $higherBound;
-    private $exclusive = true;
+    private $exclusive = false;
     private $multipleOf = false;
 
     public function hasCorrectType()
@@ -17,10 +17,14 @@ class NumberConstraint extends AbstractConstraint
     public function validateConstraint()
     {
         if ($this->lowerBound) {
-            if ($this->exclusive) {
-                return $this->value > $this->lowerBound;
-            } else {
-                return $this->value >= $this->lowerBound;
+            $success = ($this->exclusive)
+                ? $this->value > $this->lowerBound
+                : $this->value >= $this->lowerBound;
+
+            if ($success !== true) {
+                $exclusive = ($this->exclusive) ? '' : ' or equal to';
+                $message = sprintf("Number must be greater than%s the lower bound", $exclusive);
+                return $this->logFailure($message, $this->lowerBound);
             }
         }
 

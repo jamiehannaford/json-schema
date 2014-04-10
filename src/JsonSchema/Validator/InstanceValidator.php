@@ -152,6 +152,16 @@ class InstanceValidator extends AbstractValidator
 
     private function createConstraintName($value)
     {
+        switch (strtolower($value)) {
+            case "integer":
+            case "number":
+            case "numeric":
+                $value = "Number";
+                break;
+            case "bool":
+                $value = "Boolean";
+                break;
+        }
         return sprintf("%sConstraint", ucfirst($value));
     }
 

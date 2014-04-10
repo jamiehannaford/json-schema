@@ -5,10 +5,13 @@ namespace spec\JsonSchema\Validator\Constraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class NumberConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     function let(EventDispatcher $dispatcher)
     {
         $this->beConstructedWith(101, $dispatcher);
@@ -47,6 +50,7 @@ class NumberConstraintSpec extends ObjectBehavior
 
         $this->shouldNotHaveCorrectType();
 
+        $this->testFailureDispatch('Foo', 'Type is incorrect');
         $this->validate()->shouldReturn(false);
     }
 
@@ -66,6 +70,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setLowerBound(100);
         $this->setValue(80);
 
+        $this->testFailureDispatch(80, 'Number must be greater than or equal to the lower bound', 100);
         $this->validate()->shouldReturn(false);
     }
 
@@ -75,6 +80,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setExclusive(true);
         $this->setValue(5);
 
+        $this->testFailureDispatch(5, 'Number must be greater than the lower bound', 5);
         $this->validate()->shouldReturn(false);
     }
 

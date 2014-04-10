@@ -6,10 +6,13 @@ use JsonSchema\Validator\Constraint\AbstractConstraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class AbstractConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     const VALUE = 'Foo';
 
     function let(EventDispatcher $dispatcher, BufferErrorHandler $handler)
@@ -51,10 +54,10 @@ class AbstractConstraintSpec extends ObjectBehavior
     function it_should_fail_validation_if_value_does_not_equal_an_enum_value()
     {
         $this->setOverrideTypeCheck(true);
-
         $this->setEnumValues(['foo']);
         $this->setValue('bar');
 
+        $this->testFailureDispatch('bar', "Value does not match enum array");
         $this->validate()->shouldReturn(false);
     }
 
@@ -95,6 +98,7 @@ class AbstractConstraintSpec extends ObjectBehavior
         $this->setType('object');
         $this->setValue(99.9);
 
+        $this->testFailureDispatch(99.9, "Type is incorrect", 'object');
         $this->validate()->shouldReturn(false);
     }
 
@@ -106,6 +110,19 @@ class AbstractConstraintSpec extends ObjectBehavior
         $this->setValue(['foo' => 'bar']);
 
         $this->validate()->shouldReturn(true);
+    }
+
+    function it_should_support_generic_failure_logging(EventDispatcher $dispatcher)
+    {
+        $dispatcher->dispatch(Argument::type('string'), Argument::type('Symfony\Component\EventDispatcher\Event'))->shouldBeCalled();
+        $this->setEventDispatcher($dispatcher);
+        $this->logFailure(Argument::any())->shouldReturn(false);
+    }
+
+    function it_should_allow_configurable_logging()
+    {
+        $this->setLogging(true);
+        $this->getLogging()->shouldReturn(true);
     }
 }
 

@@ -2,7 +2,6 @@
 
 namespace JsonSchema\Validator;
 
-use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Validator\Constraint\ConstraintFactory;
 use JsonSchema\Validator\Constraint\ConstraintFactoryInterface;
@@ -20,9 +19,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected $data;
     protected $handler;
     protected $constraintFactory;
-    protected $constraints = [];
-
-    protected $strictnessMode = StrictnessMode::ALL;
+    protected $groups = [];
 
     public function __construct(
         EventDispatcherInterface $errorDispatcher = null,
@@ -72,51 +69,52 @@ abstract class AbstractValidator implements ValidatorInterface
         return $this->constraintFactory->create($name, $value, $this->eventDispatcher);
     }
 
-    public function addConstraint(ConstraintInterface $constraint)
+    public function addConstraint($value, $strictnessMode = null)
     {
-        $this->constraints[] = $constraint;
+        $group = new ConstraintGroup($strictnessMode);
+
+        if (is_array($value)) {
+            foreach ($value as $constraint) {
+                $group->addConstraint($constraint);
+            }
+        } elseif ($value instanceof ConstraintInterface) {
+            $group->addConstraint($value);
+        } else {
+            throw new \InvalidArgumentException(
+                "An array or single instance of ConstraintInterface must be provided"
+            );
+        }
+
+        $this->addGroup($group);
     }
 
-    public function setConstraints(array $constraints)
+    public function setGroups(array $groups)
     {
-        $this->constraints = $constraints;
+        $this->groups = $groups;
     }
 
-    public function getConstraints()
+    public function getGroups()
     {
-        return $this->constraints;
+        return $this->groups;
     }
 
-    public function setStrictnessMode($mode)
+    public function addGroup(ConstraintGroup $group)
     {
-        $this->strictnessMode = $mode;
-    }
-
-    public function getStrictnessMode()
-    {
-        return $this->strictnessMode;
+        $this->groups[] = $group;
     }
 
     protected function doValidate()
     {
-        if (empty($this->constraints)) {
+        if (empty($this->groups)) {
             return true;
         }
 
-        $successes = $failures = 0;
-
-        foreach ($this->constraints as $constraint) {
-            if (true === $constraint->validate()) {
-                $successes += 1;
-            } else {
-                $failures += 1;
+        foreach ($this->groups as $group) {
+            if (true !== $group->validate()) {
+                return false;
             }
         }
 
-        if ($this->strictnessMode == StrictnessMode::ANY) {
-            return ($successes > 0) ? true : false;
-        } else {
-            return ($failures === 0) ? true : false;
-        }
+        return true;
     }
 }

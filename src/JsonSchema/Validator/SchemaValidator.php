@@ -63,31 +63,28 @@ class SchemaValidator extends AbstractValidator
             // Bool or object
             case SchemaKeyword::ADDITIONAL_PROPERTIES:
             case SchemaKeyword::ADDITIONAL_ITEMS:
-                // Make sure the validator knows either constraint can succeed for validation to pass
-                $this->setStrictnessMode(StrictnessMode::ANY);
-
-                // Add bool constraint
+                // bool constraint
                 $boolConstraint = $this->createConstraint('BooleanConstraint', $value);
-                $this->addConstraint($boolConstraint);
 
-                // Add object constraint + ensure schema validation
+                // object constraint + ensure schema validation
                 $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
                 $objectConstraint->setSchemaValidation(true);
-                $this->addConstraint($objectConstraint);
+
+                // Make sure the validator knows either constraint can succeed for validation to pass
+                $this->addConstraint([$boolConstraint, $objectConstraint], StrictnessMode::ANY);
                 break;
 
             // Object or array
             case SchemaKeyword::ITEMS:
-                $this->setStrictnessMode(StrictnessMode::ANY);
                 // Add array constraint + ensure nested schema validation
                 $boolConstraint = $this->createConstraint('ArrayConstraint', $value);
                 $boolConstraint->setNestedSchemaValidation(true);
-                $this->addConstraint($boolConstraint);
 
                 // Add object constraint + ensure schema validation
                 $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
                 $objectConstraint->setSchemaValidation(true);
-                $this->addConstraint($objectConstraint);
+
+                $this->addConstraint([$boolConstraint, $objectConstraint], StrictnessMode::ANY);
                 break;
 
             // Array whose items must be unique strings
@@ -130,17 +127,15 @@ class SchemaValidator extends AbstractValidator
 
             // Array whose string values, or string, which is a primitive type
             case SchemaKeyword::TYPE:
-                $this->setStrictnessMode(StrictnessMode::ANY);
-
                 $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
                 $arrayConstraint->setMinimumCount(1);
                 $arrayConstraint->setInternalPrimitiveTypeValidation(true);
                 $arrayConstraint->setUniqueness(true);
-                $this->addConstraint($arrayConstraint);
 
                 $stringConstraint = $this->createConstraint('StringConstraint', $value);
                 $stringConstraint->setPrimitiveTypeValidation(true);
-                $this->addConstraint($stringConstraint);
+
+                $this->addConstraint([$arrayConstraint, $stringConstraint], StrictnessMode::ANY);
                 break;
 
             // Array whose elements must be valid schemas

@@ -12,5 +12,6 @@ class BooleanConstraint extends AbstractConstraint
     public function validateConstraint()
     {
         // no custom logic
+        return true;
     }
 }
