@@ -24,4 +24,9 @@ class FailureEventSpec extends ObjectBehavior
     {
         $this->offsetGet('foo')->shouldReturn('bar');
     }
+
+    function it_should_return_all_data()
+    {
+        $this->getData()->shouldReturn(['foo' => 'bar']);
+    }
 }
