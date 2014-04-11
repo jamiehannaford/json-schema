@@ -2,7 +2,6 @@
 
 namespace spec\JsonSchema\Validator\Constraint;
 
-use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Symfony\Component\EventDispatcher\EventDispatcher;
