@@ -4,6 +4,7 @@ namespace JsonSchema;
 
 use JsonSchema\Schema\RootSchema;
 use JsonSchema\Validator\SchemaValidator;
+use JsonSchema\Validator\ValidatorInterface;
 
 class Parser
 {
@@ -51,13 +52,13 @@ class Parser
         return $stream;
     }
 
-    public function parse()
+    public function parse(ValidatorInterface $validator = null)
     {
         if (!is_resource($this->jsonData)) {
             throw new \RuntimeException('No JSON data has been set to parse');
         }
 
-        $validator = new SchemaValidator();
+        $validator = $validator ?: new SchemaValidator();
 
         // @todo We should support streaming JSON parsing
         $content = json_decode(stream_get_contents($this->jsonData));
