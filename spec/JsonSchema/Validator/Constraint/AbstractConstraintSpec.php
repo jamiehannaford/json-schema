@@ -2,10 +2,13 @@
 
 namespace spec\JsonSchema\Validator\Constraint;
 
+use JsonSchema\Enum\LogType;
 use JsonSchema\Validator\Constraint\AbstractConstraint;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
+use JsonSchema\Validator\FailureEvent;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Prophecy\Prophet;
 use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -119,10 +122,48 @@ class AbstractConstraintSpec extends ObjectBehavior
         $this->logFailure(Argument::any())->shouldReturn(false);
     }
 
-    function it_should_allow_configurable_logging()
+    function it_should_support_log_types()
     {
-        $this->setLogging(true);
-        $this->getLogging()->shouldReturn(true);
+        $this->setLogType(LogType::DISABLED);
+        $this->getLogType()->shouldReturn(LogType::DISABLED);
+    }
+
+    function it_should_have_emitting_as_default_log_type()
+    {
+        $this->getLogType()->shouldReturn(LogType::EMITTING);
+    }
+
+    function it_should_emit_no_errors_if_logging_is_disabled()
+    {
+        $this->setType('object');
+        $this->setValue(99.9);
+
+        $event = new FailureEvent([
+            'value' => 99.9,
+            'message' => 'Type is incorrect',
+            'expected' => 'object'
+        ]);
+
+        $prophet = new Prophet();
+        $dispatcher = $prophet->prophesize('Symfony\Component\EventDispatcher\EventDispatcher');
+        $dispatcher->dispatch('validation.error', $event)->shouldNotBeCalled();
+        $this->setEventDispatcher($dispatcher);
+
+        $this->setLogType(LogType::DISABLED);
+
+        $this->validate();
+    }
+
+    function it_should_store_errors_if_logging_set_to_internal()
+    {
+        $this->setType('object');
+        $this->setValue(99.9);
+
+        $this->setLogType(LogType::INTERNAL);
+
+        $this->validate();
+
+        $this->getValidationErrors()->shouldHaveCount(1);
     }
 }
 

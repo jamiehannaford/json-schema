@@ -17,7 +17,6 @@ abstract class AbstractValidator implements ValidatorInterface
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
 
     protected $data;
-    protected $handler;
     protected $constraintFactory;
     protected $groups = [];
 
@@ -47,16 +46,6 @@ abstract class AbstractValidator implements ValidatorInterface
     public function getData()
     {
         return $this->data;
-    }
-
-    public function setErrorHandler(ErrorHandlerInterface $errorHandler)
-    {
-        $this->handler = $errorHandler;
-    }
-
-    public function getErrorHandler()
-    {
-        return $this->handler;
     }
 
     public function setConstraintFactory(ConstraintFactoryInterface $factory)

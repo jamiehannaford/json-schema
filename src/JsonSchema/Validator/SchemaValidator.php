@@ -77,14 +77,14 @@ class SchemaValidator extends AbstractValidator
             // Object or array
             case SchemaKeyword::ITEMS:
                 // Add array constraint + ensure nested schema validation
-                $boolConstraint = $this->createConstraint('ArrayConstraint', $value);
-                $boolConstraint->setNestedSchemaValidation(true);
+                $array = $this->createConstraint('ArrayConstraint', $value);
+                $array->setNestedSchemaValidation(true);
 
                 // Add object constraint + ensure schema validation
-                $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
-                $objectConstraint->setSchemaValidation(true);
+                $object = $this->createConstraint('ObjectConstraint', $value);
+                $object->setSchemaValidation(true);
 
-                $this->addConstraint([$boolConstraint, $objectConstraint], StrictnessMode::ANY);
+                $this->addConstraint([$array, $object], StrictnessMode::ANY);
                 break;
 
             // Array whose items must be unique strings

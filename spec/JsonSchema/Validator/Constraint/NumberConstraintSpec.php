@@ -50,8 +50,8 @@ class NumberConstraintSpec extends ObjectBehavior
 
         $this->shouldNotHaveCorrectType();
 
-        $this->testFailureDispatch('Foo', 'Type is incorrect');
-        $this->validate()->shouldReturn(false);
+        $this->testFailureDispatch('Foo', 'Type is incorrect', 'numeric');
+        $this->validateType()->shouldReturn(false);
     }
 
     function it_should_allow_exclusive_checks()
@@ -74,13 +74,32 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->validate()->shouldReturn(false);
     }
 
-    function it_should_fail_validation_for_numbers_on_boundary_if_exclusive_is_true()
+    function it_should_fail_validation_for_numbers_on_lower_boundary_if_exclusive_is_true()
     {
         $this->setLowerBound(5);
         $this->setExclusive(true);
         $this->setValue(5);
 
         $this->testFailureDispatch(5, 'Number must be greater than the lower bound', 5);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_for_numbers_higher_than_higher_boundary()
+    {
+        $this->setHigherBound(100);
+        $this->setValue(180);
+
+        $this->testFailureDispatch(180, 'Number must be less than or equal to the higher bound', 100);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_fail_validation_for_numbers_on_higher_boundary_if_exclusive_is_true()
+    {
+        $this->setHigherBound(5);
+        $this->setExclusive(true);
+        $this->setValue(5);
+
+        $this->testFailureDispatch(5, 'Number must be less than the higher bound', 5);
         $this->validate()->shouldReturn(false);
     }
 
@@ -97,6 +116,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setMultipleOf(3);
 
         $this->setValue(55);
+        $this->testFailureDispatch(55, 'Number is not a valid multiple', 3);
         $this->validate()->shouldReturn(false);
 
         $this->setValue(300);

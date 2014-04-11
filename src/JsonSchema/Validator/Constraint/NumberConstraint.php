@@ -4,6 +4,8 @@ namespace JsonSchema\Validator\Constraint;
 
 class NumberConstraint extends AbstractConstraint
 {
+    const TYPE = 'numeric';
+
     private $lowerBound;
     private $higherBound;
     private $exclusive = false;
@@ -28,9 +30,21 @@ class NumberConstraint extends AbstractConstraint
             }
         }
 
+        if ($this->higherBound) {
+            $success = ($this->exclusive)
+                ? $this->value < $this->higherBound
+                : $this->value <= $this->higherBound;
+
+            if ($success !== true) {
+                $exclusive = ($this->exclusive) ? '' : ' or equal to';
+                $message = sprintf("Number must be less than%s the higher bound", $exclusive);
+                return $this->logFailure($message, $this->higherBound);
+            }
+        }
+
         if ((int) $this->multipleOf > 0) {
             if ($this->value % $this->multipleOf !== 0) {
-                return false;
+                return $this->logFailure('Number is not a valid multiple', $this->multipleOf);
             }
         }
 

@@ -35,7 +35,7 @@ class BooleanConstraintSpec extends ObjectBehavior
         $this->setValue('Foo');
         $this->shouldNotHaveCorrectType();
 
-        $this->testFailureDispatch('Foo', 'Type is incorrect');
+        $this->testFailureDispatch('Foo', 'Type is incorrect', 'boolean');
         $this->validate()->shouldReturn(false);
     }
 }

@@ -4,12 +4,16 @@ namespace spec\JsonSchema\Validator\Constraint;
 
 use JsonSchema\Exception\InvalidTypeException;
 use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
+use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\JsonSchema\Validator\HasValidationChecker;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class StringConstraintSpec extends ObjectBehavior
 {
+    use HasValidationChecker;
+
     function let(EventDispatcher $dispatcher)
     {
         $this->beConstructedWith('Foo', $dispatcher);
@@ -38,7 +42,7 @@ class StringConstraintSpec extends ObjectBehavior
 
         foreach ($incorrectTypes as $value) {
             $this->setValue($value);
-            $this->validate()->shouldReturn(false);
+            $this->validateType()->shouldReturn(false);
         }
 
         fclose($incorrectTypes['resource']);
@@ -62,6 +66,8 @@ class StringConstraintSpec extends ObjectBehavior
     {
         $this->setRegexValidation(true);
         $this->setValue('#foo');
+
+        $this->testFailureDispatch('#foo', 'Value is not a valid regular expression');
         $this->validate()->shouldReturn(false);
     }
 
@@ -97,8 +103,10 @@ class StringConstraintSpec extends ObjectBehavior
     function it_should_fail_validation_if_value_is_not_primitive_type_and_option_set()
     {
         $this->setPrimitiveTypeValidation(true);
-
         $this->setValue('foo');
+
+        $allowed = ['string', 'number', 'boolean', 'null', 'object', 'array'];
+        $this->testFailureDispatch('foo', 'Value is not a valid primitive type', $allowed);
         $this->validate()->shouldReturn(false);
     }
 
@@ -111,8 +119,10 @@ class StringConstraintSpec extends ObjectBehavior
     function it_should_fail_validation_if_string_length_is_higher_than_max_length()
     {
         $this->setMaxLength(10);
-        $this->setValue(str_repeat('a', 15));
+        $value = str_repeat('a', 15);
+        $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Value contains more characters than allowed', 10);
         $this->validate()->shouldReturn(false);
     }
 
@@ -130,8 +140,25 @@ class StringConstraintSpec extends ObjectBehavior
     function it_should_fail_validation_if_string_length_is_lower_than_min_length()
     {
         $this->setMinLength(100);
-        $this->setValue(str_repeat('a', 15));
+        $value = str_repeat('a', 15);
+        $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Value does not contain enough characters', 100);
+        $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_throw_exception_if_setting_regex_validation_with_invalid_type()
+    {
+        $this->shouldThrow('InvalidArgumentException')->duringSetRegexValidation('#invalid');
+    }
+
+    function it_should_fail_validation_if_string_does_not_match_regex()
+    {
+        $pattern = '#foo#';
+        $this->setRegexValidation($pattern);
+        $this->setValue('bar');
+
+        $this->testFailureDispatch('bar', 'Value does not satisfy regular expression', $pattern);
         $this->validate()->shouldReturn(false);
     }
 }

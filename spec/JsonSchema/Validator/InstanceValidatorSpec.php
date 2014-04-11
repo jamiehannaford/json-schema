@@ -134,7 +134,7 @@ class InstanceValidatorSpec extends ObjectBehavior
         $this->setSchema($schema);
 
         $constraint = $this->prophesizeConstraint('StringConstraint');
-        $constraint->setRegexValidation(true)->shouldBeCalled();
+        $constraint->setRegexValidation($regex)->shouldBeCalled();
 
         $this->testValidationPrediction('pattern', $constraint, $regex);
     }

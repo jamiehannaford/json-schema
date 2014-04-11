@@ -2,10 +2,10 @@
 
 namespace JsonSchema\Validator\Constraint;
 
-use JsonSchema\Schema\RootSchema;
-
 class ObjectConstraint extends AbstractConstraint
 {
+    const TYPE = 'object';
+
     private $schemaValidation = false;
     private $nestedSchemaValidation = false;
     private $patternPropertiesValidation = false;
@@ -38,9 +38,7 @@ class ObjectConstraint extends AbstractConstraint
         if (true === $this->patternPropertiesValidation) {
             foreach ($this->value as $key => $value) {
                 // Check that keys are valid regex strings
-                $constraint  = $this->constraintFactory->create('StringConstraint', $key, $this->eventDispatcher);
-                $constraint->setRegexValidation(true);
-                if (!$constraint->validate()) {
+                if (!$this->validateRegex($key)) {
                     return $this->logFailure('Object contains keys which are invalid regular expressions', null, $key);
                 }
 
@@ -76,12 +74,10 @@ class ObjectConstraint extends AbstractConstraint
                 $schemas = get_object_vars($this->schemaDependencies);
                 foreach ($this->value as $key => $value) {
                     if (isset($schemas[$key])) {
-                        // First create the schema object
-                        $schema = $this->createRootSchema($schemas[$key]);
-
-                        // Now validate the instance against this schema
+                        $schemaData = $schemas[$key];
+                        $schema = $this->createRootSchema($schemaData);
                         if (true !== $schema->validateInstanceData($value)) {
-                            return false;
+                            return $this->logFailure('The object values provided fail to validate against the given schema', $schemaData);
                         }
                     }
                 }
@@ -91,28 +87,31 @@ class ObjectConstraint extends AbstractConstraint
             if (is_array($this->allowedPropertyNames)) {
                 $properties = array_keys(get_object_vars($this->value));
                 if (count(array_diff($this->allowedPropertyNames, $properties))) {
-                    return false;
+                    return $this->logFailure('Object does not contain property dependencies', $this->allowedPropertyNames);
                 }
             }
         }
 
         if (is_int($this->maxProperties) && $this->getCount() > $this->maxProperties) {
-            return false;
+            return $this->logFailure('Object has more properties than allowed', $this->maxProperties);
         }
 
         if (is_int($this->minProperties) && $this->getCount() < $this->minProperties) {
-            return false;
+            return $this->logFailure('Object does not have enough properties', $this->minProperties);
         }
 
         if (is_array($this->requiredElementNames)) {
             $keys = array_keys(get_object_vars($this->value));
             if (count(array_diff($this->requiredElementNames, $keys))) {
-                return false;
+                return $this->logFailure('Object does not contain required properties', $this->requiredElementNames);
             }
         }
 
         if (true === $this->strictAdditionalProperties && true !== $this->validateStrictProperties()) {
-            return false;
+            return $this->logFailure('Some object properties either do not '
+                . 'match the names defined in `properties` or match the regular '
+                . 'expressions defined in `patterProperties`'
+            );
         }
 
         return true;
@@ -297,15 +296,5 @@ class ObjectConstraint extends AbstractConstraint
     public function getSchemaDependencies()
     {
         return $this->schemaDependencies;
-    }
-
-    public function setPropertyDependencies($argument1)
-    {
-        // TODO: write logic here
-    }
-
-    public function getPropertyDependencies()
-    {
-        // TODO: write logic here
     }
 }

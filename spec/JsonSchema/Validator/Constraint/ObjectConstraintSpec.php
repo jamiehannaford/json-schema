@@ -177,6 +177,7 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Object has more properties than allowed', 2);
         $this->validate()->shouldReturn(false);
     }
 
@@ -201,6 +202,7 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Object does not have enough properties', 3);
         $this->validate()->shouldReturn(false);
     }
 
@@ -219,6 +221,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $value = (object) ['name' => 1, 'location' => 2, 'favouriteColour' => 3];
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Object does not contain required properties', $required);
         $this->validate()->shouldReturn(false);
     }
 
@@ -309,9 +312,11 @@ class ObjectConstraintSpec extends ObjectBehavior
         $value = (object)['foo' => 1, 'bar' => 2, 'baz' => 3];
         $this->setValue($value);
 
+        $allowed = ['foo', 'bar'];
         $this->setStrictAdditionalProperties(true);
-        $this->setAllowedPropertyNames(['foo', 'bar']);
+        $this->setAllowedPropertyNames($allowed);
 
+        $this->testFailureDispatch($value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
         $this->validate()->shouldReturn(false);
     }
 
@@ -336,6 +341,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $regexes = ['#^[f|z]oo$#'];
         $this->setRegexArray($regexes);
 
+        $this->testFailureDispatch($value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
         $this->validate()->shouldReturn(false);
     }
 
@@ -370,11 +376,13 @@ class ObjectConstraintSpec extends ObjectBehavior
         ];
         $this->setValue($instance);
 
-        $subSchema = (object)['people' => (object)['minProperties' => 4]];
+        $schema = (object)['minProperties' => 4];
+        $subSchema = (object)['people' => $schema];
 
         $this->setDependenciesInstanceValidation(true);
         $this->setSchemaDependencies($subSchema);
 
+        $this->testFailureDispatch($instance, 'The object values provided fail to validate against the given schema', $schema);
         $this->validate()->shouldReturn(false);
     }
 
@@ -385,11 +393,13 @@ class ObjectConstraintSpec extends ObjectBehavior
         ];
         $this->setValue($instance);
 
-        $subSchema = (object)['foo' => (object)['minProperties' => 4]];
+        $schema = (object)['minProperties' => 4];
+        $subSchema = (object)['foo' => $schema];
 
         $this->setDependenciesInstanceValidation(true);
         $this->setSchemaDependencies($subSchema);
 
+        $this->testFailureDispatch($instance, 'The object values provided fail to validate against the given schema', $schema);
         $this->validate()->shouldReturn(false);
     }
 
@@ -429,12 +439,15 @@ class ObjectConstraintSpec extends ObjectBehavior
 
     function it_should_fail_validation_if_object_does_not_contain_property_dependencies()
     {
+        $allowed = ['foo', 'bar'];
+
         $this->setDependenciesInstanceValidation(true);
-        $this->setAllowedPropertyNames(['foo', 'bar']);
+        $this->setAllowedPropertyNames($allowed);
 
         $value = (object)['foo' => 1, 'baz' => 2];
         $this->setValue($value);
 
+        $this->testFailureDispatch($value, 'Object does not contain property dependencies', $allowed);
         $this->validate()->shouldReturn(false);
     }
 

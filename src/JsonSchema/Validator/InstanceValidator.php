@@ -55,7 +55,7 @@ class InstanceValidator extends AbstractValidator
                 break;
             case SchemaKeyword::PATTERN:
                 $constraint = $this->createConstraint('StringConstraint', $this->data);
-                $constraint->setRegexValidation(true);
+                $constraint->setRegexValidation($value);
                 $this->addConstraint($constraint);
                 break;
             case SchemaKeyword::ITEMS:

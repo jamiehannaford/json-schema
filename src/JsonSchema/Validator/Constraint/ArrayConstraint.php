@@ -7,6 +7,8 @@ use JsonSchema\Validator\SchemaValidator;
 
 class ArrayConstraint extends AbstractConstraint
 {
+    const TYPE = 'array';
+
     private $nestedSchemaValidation = false;
     private $internalType;
     private $forceUnique = false;
@@ -19,7 +21,7 @@ class ArrayConstraint extends AbstractConstraint
     {
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $schemaData) {
-               if (!$this->validateSchema($schemaData)) {
+               if (true !== $this->validateSchema($schemaData)) {
                    return $this->logFailure("The nested schemas provided were invalid");
                }
             }

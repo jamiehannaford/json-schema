@@ -2,6 +2,7 @@
 
 namespace spec\JsonSchema\Validator;
 
+use JsonSchema\Enum\LogType;
 use JsonSchema\Enum\SchemaKeyword;
 use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\Constraint\ArrayConstraint;
@@ -89,14 +90,17 @@ class ConstraintGroupSpec extends ObjectBehavior
         ObjectConstraint $object, NumberConstraint $number, BooleanConstraint $bool
     )
     {
+        $object->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $object->validateType()->willReturn(true);
         $object->validateConstraint()->willReturn(true);
         $this->addConstraint($object);
 
+        $number->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $number->validateType()->willReturn(false);
         $number->validateConstraint()->willReturn(false);
         $this->addConstraint($number);
 
+        $bool->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $bool->validateType()->willReturn(false);
         $bool->validateConstraint()->willReturn(false);
         $this->addConstraint($bool);
@@ -110,14 +114,20 @@ class ConstraintGroupSpec extends ObjectBehavior
         ObjectConstraint $object, BooleanConstraint $bool, NumberConstraint $number
     )
     {
+        $object->flushInternalErrors()->shouldBeCalled();
+        $object->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $object->validateType()->willReturn(false);
         $object->validateConstraint()->willReturn(false);
         $this->addConstraint($object);
 
+        $number->flushInternalErrors()->shouldBeCalled();
+        $number->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $number->validateType()->willReturn(false);
         $number->validateConstraint()->willReturn(false);
         $this->addConstraint($number);
 
+        $bool->flushInternalErrors()->shouldBeCalled();
+        $bool->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $bool->validateType()->willReturn(false);
         $bool->validateConstraint()->willReturn(false);
         $this->addConstraint($bool);
@@ -137,11 +147,13 @@ class ConstraintGroupSpec extends ObjectBehavior
         $dispatcher->addListener('validation.error', [$handler, 'receiveError']);
         $dispatcher->dispatch(Argument::any(), Argument::any())->shouldNotBeCalled();
 
+        $object->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $object->validateType()->willReturn(false);
         $object->validateConstraint()->willReturn(false);
         $object->setEventDispatcher($dispatcher);
         $this->addConstraint($object);
 
+        $string->setLogType(LogType::INTERNAL)->shouldBeCalled();
         $string->validateType()->willReturn(true);
         $string->validateConstraint()->willReturn(true);
         $object->setEventDispatcher($dispatcher);
@@ -149,6 +161,6 @@ class ConstraintGroupSpec extends ObjectBehavior
 
         $this->setStrictnessMode(StrictnessMode::ANY);
 
-        var_dump($handler->getWrappedObject());die;
+        $this->validate();
     }
 }

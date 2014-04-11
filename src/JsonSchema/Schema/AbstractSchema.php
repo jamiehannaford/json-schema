@@ -75,7 +75,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function isValid()
     {
-        return count($this->validator->getErrorCount()) === 0;
+        return $this->validator->getErrorCount() === 0;
     }
 
     public function validateInstanceData(

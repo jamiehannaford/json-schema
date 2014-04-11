@@ -25,6 +25,18 @@ trait HasValidationChecker
         }
     }
 
+    public function getMatchers()
+    {
+        return [
+            'contain' => function ($subject, $key) {
+                    return array_search($key, $subject);
+                },
+            'haveCount' => function ($subject, $num) {
+                    return count($subject) === $num;
+                }
+        ];
+    }
+
     protected function getCollaboratorName(Collaborator $object)
     {
         $reflection = new \ReflectionObject($object->reveal());
