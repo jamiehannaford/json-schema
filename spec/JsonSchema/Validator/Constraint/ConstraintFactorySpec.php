@@ -17,16 +17,16 @@ class ConstraintFactorySpec extends ObjectBehavior
     function it_should_throw_exception_if_asked_to_create_nonexistent_constraint_class(EventDispatcher $dispatcher)
     {
         $exception = new \RuntimeException('JsonSchema\Validator\Constraint\FooConstraint class does not exist');
-        $this->shouldThrow($exception)->duringCreate('FooConstraint', 'Foo', $dispatcher);
+        $this->shouldThrow($exception)->duringCreate('FooConstraint', 'Foo', 'Bar', $dispatcher);
     }
 
     function it_should_create_a_constraint_class(EventDispatcher $dispatcher)
     {
-        $this->create('StringConstraint', 'Foo', $dispatcher)->shouldHaveType('JsonSchema\Validator\Constraint\StringConstraint');
+        $this->create('StringConstraint', 'Foo', 'Bar', $dispatcher)->shouldHaveType('JsonSchema\Validator\Constraint\StringConstraint');
     }
 
     function it_should_throw_exception_if_asked_to_create_class_that_doesnt_implement_ConstraintInterface(EventDispatcher $dispatcher)
     {
-        $this->shouldThrow('InvalidArgumentException')->duringCreate('\stdClass', 'Foo', $dispatcher);
+        $this->shouldThrow('InvalidArgumentException')->duringCreate('\stdClass', 'Foo', 'Bar', $dispatcher);
     }
 }

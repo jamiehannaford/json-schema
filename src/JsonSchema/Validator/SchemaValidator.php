@@ -14,13 +14,13 @@ class SchemaValidator extends AbstractValidator
             // String
             case SchemaKeyword::TITLE:
             case SchemaKeyword::DESCRIPTION:
-                $constraint = $this->createConstraint('StringConstraint', $value);
+                $constraint = $this->createStringConstraint($keyword, $value);
                 $this->addConstraint($constraint);
                 break;
 
             // Regex string
             case SchemaKeyword::PATTERN:
-                $constraint = $this->createConstraint('StringConstraint', $value);
+                $constraint = $this->createStringConstraint($keyword, $value);
                 $constraint->setRegexValidation(true);
                 $this->addConstraint($constraint);
                 break;
@@ -28,13 +28,13 @@ class SchemaValidator extends AbstractValidator
             // Numeric
             case SchemaKeyword::MINIMUM:
             case SchemaKeyword::MAXIMUM:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createNumberConstraint($keyword, $value);
                 $this->addConstraint($constraint);
                 break;
 
             // Integer > 0
             case SchemaKeyword::MULTIPLE_OF:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createNumberConstraint($keyword, $value);
                 $constraint->setLowerBound(0);
                 $this->addConstraint($constraint);
                 break;
@@ -46,7 +46,7 @@ class SchemaValidator extends AbstractValidator
             case SchemaKeyword::MIN_ITEMS:
             case SchemaKeyword::MAX_PROPERTIES:
             case SchemaKeyword::MIN_PROPERTIES:
-                $constraint = $this->createConstraint('NumberConstraint', $value);
+                $constraint = $this->createNumberConstraint($keyword, $value);
                 $constraint->setLowerBound(0);
                 $constraint->setExclusive(false);
                 $this->addConstraint($constraint);
@@ -56,7 +56,7 @@ class SchemaValidator extends AbstractValidator
             case SchemaKeyword::EXCLUSIVE_MINIMUM:
             case SchemaKeyword::EXCLUSIVE_MAXIMUM:
             case SchemaKeyword::UNIQUE_ITEMS:
-                $constraint = $this->createConstraint('BooleanConstraint', $value);
+                $constraint = $this->createBoolConstraint($keyword, $value);
                 $this->addConstraint($constraint);
                 break;
 
@@ -64,10 +64,10 @@ class SchemaValidator extends AbstractValidator
             case SchemaKeyword::ADDITIONAL_PROPERTIES:
             case SchemaKeyword::ADDITIONAL_ITEMS:
                 // bool constraint
-                $boolConstraint = $this->createConstraint('BooleanConstraint', $value);
+                $boolConstraint = $this->createBoolConstraint($keyword, $value);
 
                 // object constraint + ensure schema validation
-                $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
+                $objectConstraint = $this->createObjectConstraint($keyword, $value);
                 $objectConstraint->setSchemaValidation(true);
 
                 // Make sure the validator knows either constraint can succeed for validation to pass
@@ -77,11 +77,11 @@ class SchemaValidator extends AbstractValidator
             // Object or array
             case SchemaKeyword::ITEMS:
                 // Add array constraint + ensure nested schema validation
-                $array = $this->createConstraint('ArrayConstraint', $value);
+                $array = $this->createArrayConstraint($keyword, $value);
                 $array->setNestedSchemaValidation(true);
 
                 // Add object constraint + ensure schema validation
-                $object = $this->createConstraint('ObjectConstraint', $value);
+                $object = $this->createObjectConstraint($keyword, $value);
                 $object->setSchemaValidation(true);
 
                 $this->addConstraint([$array, $object], StrictnessMode::ANY);
@@ -89,7 +89,7 @@ class SchemaValidator extends AbstractValidator
 
             // Array whose items must be unique strings
             case SchemaKeyword::REQUIRED:
-                $constraint = $this->createConstraint('ArrayConstraint', $value);
+                $constraint = $this->createArrayConstraint($keyword, $value);
                 $constraint->setInternalType('string');
                 $constraint->setUniqueness(true);
                 $constraint->setMinimumCount(1);
@@ -99,40 +99,40 @@ class SchemaValidator extends AbstractValidator
             // Object whose values must be valid schemas
             case SchemaKeyword::PROPERTIES:
             case SchemaKeyword::DEFINITIONS:
-                $constraint = $this->createConstraint('ObjectConstraint', $value);
+                $constraint = $this->createObjectConstraint($keyword, $value);
                 $constraint->setNestedSchemaValidation(true);
                 $this->addConstraint($constraint);
                 break;
 
             // Object whose keys are valid regex strings + values are valid JSON schemas
             case SchemaKeyword::PATTERN_PROPERTIES:
-                $constraint = $this->createConstraint('ObjectConstraint', $value);
+                $constraint = $this->createObjectConstraint($keyword, $value);
                 $constraint->setPatternPropertiesValidation(true);
                 $this->addConstraint($constraint);
                 break;
 
             // Object whose values are either valid schemas or arrays
             case SchemaKeyword::DEPENDENCIES:
-                $constraint = $this->createConstraint('ObjectConstraint', $value);
+                $constraint = $this->createObjectConstraint($keyword, $value);
                 $constraint->setDependenciesSchemaValidation(true);
                 $this->addConstraint($constraint);
                 break;
 
             // Array
             case SchemaKeyword::ENUM:
-                $constraint = $this->createConstraint('ArrayConstraint', $value);
+                $constraint = $this->createArrayConstraint($keyword, $value);
                 $constraint->setMinimumCount(1);
                 $this->addConstraint($constraint);
                 break;
 
             // Array whose string values, or string, which is a primitive type
             case SchemaKeyword::TYPE:
-                $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
+                $arrayConstraint = $this->createArrayConstraint($keyword, $value);
                 $arrayConstraint->setMinimumCount(1);
                 $arrayConstraint->setInternalPrimitiveTypeValidation(true);
                 $arrayConstraint->setUniqueness(true);
 
-                $stringConstraint = $this->createConstraint('StringConstraint', $value);
+                $stringConstraint = $this->createStringConstraint($keyword, $value);
                 $stringConstraint->setPrimitiveTypeValidation(true);
 
                 $this->addConstraint([$arrayConstraint, $stringConstraint], StrictnessMode::ANY);
@@ -142,14 +142,14 @@ class SchemaValidator extends AbstractValidator
             case SchemaKeyword::ALL_OF:
             case SchemaKeyword::ANY_OF:
             case SchemaKeyword::ONE_OF:
-                $arrayConstraint = $this->createConstraint('ArrayConstraint', $value);
+                $arrayConstraint = $this->createArrayConstraint($keyword, $value);
                 $arrayConstraint->setNestedSchemaValidation(true);
                 $this->addConstraint($arrayConstraint);
                 break;
 
             // Object which is valid schema
             case SchemaKeyword::NOT:
-                $objectConstraint = $this->createConstraint('ObjectConstraint', $value);
+                $objectConstraint = $this->createObjectConstraint($keyword, $value);
                 $objectConstraint->setSchemaValidation(true);
                 $this->addConstraint($objectConstraint);
                 break;

@@ -11,9 +11,11 @@ class ObjectConstraintSpec extends ObjectBehavior
 {
     use HasValidationChecker;
 
+    const NAME = 'Foo';
+
     function let(\stdClass $value, EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith($value, $dispatcher);
+        $this->beConstructedWith(self::NAME, $value, $dispatcher);
     }
 
     function it_is_initializable()
@@ -69,7 +71,7 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setSchemaValidation(true);
 
-        $this->testFailureDispatch($value, 'Object is not a valid schema');
+        $this->testFailureDispatch(self::NAME, $value, 'Object is not a valid schema');
         $this->validate()->shouldReturn(false);
 
     }
@@ -84,7 +86,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setSchemaValidation(false);
         $this->setNestedSchemaValidation(true);
 
-        $this->testFailureDispatch($value, 'Object contains invalid nested schemas');
+        $this->testFailureDispatch('title', 101, 'Type is incorrect', 'string');
         $this->validate()->shouldReturn(false);
     }
 
@@ -96,7 +98,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setPatternPropertiesValidation(true);
         $this->setValue((object) [$invalid => $schema]);
 
-        $this->testFailureDispatch($invalid, 'Object contains keys which are invalid regular expressions');
+        $this->testFailureDispatch(self::NAME, $invalid, 'Object contains keys which are invalid regular expressions');
         $this->validate()->shouldReturn(false);
     }
 
@@ -107,7 +109,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setPatternPropertiesValidation(true);
         $this->setValue((object) ['#complete-regex#' => $schema]);
 
-        $this->testFailureDispatch($schema, 'Object contains values which are invalid schemas');
+        $this->testFailureDispatch('title', 101, 'Type is incorrect', 'string');
         $this->validate()->shouldReturn(false);
     }
 
@@ -118,7 +120,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
 
-        $this->testFailureDispatch('bar', 'Object values need to be either objects or array');
+        $this->testFailureDispatch(self::NAME, 'bar', 'Object values need to be either objects or array');
         $this->validate()->shouldReturn(false);
     }
 
@@ -131,7 +133,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
 
-        $this->testFailureDispatch($value, 'Objects provided as values must be valid schemas');
+        $this->testFailureDispatch(self::NAME, $value, 'Objects provided as values must be valid schemas');
         $this->validate()->shouldReturn(false);
     }
 
@@ -144,7 +146,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
 
-        $this->testFailureDispatch([1, 2, 3], 'The values of this array are of an invalid type', 'string');
+        $this->testFailureDispatch('foo', [1, 2, 3], 'The values of this array are of an invalid type', 'string');
         $this->validate()->shouldReturn(false);
     }
 
@@ -157,7 +159,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setValue($value);
         $this->setDependenciesSchemaValidation(true);
 
-        $this->testFailureDispatch([], 'Array does not contain enough elements', 1);
+        $this->testFailureDispatch('foo', [], 'Array does not contain enough elements', 1);
         $this->validate()->shouldReturn(false);
     }
 
@@ -177,7 +179,7 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Object has more properties than allowed', 2);
+        $this->testFailureDispatch(self::NAME, $value, 'Object has more properties than allowed', 2);
         $this->validate()->shouldReturn(false);
     }
 
@@ -202,7 +204,7 @@ class ObjectConstraintSpec extends ObjectBehavior
 
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Object does not have enough properties', 3);
+        $this->testFailureDispatch(self::NAME, $value, 'Object does not have enough properties', 3);
         $this->validate()->shouldReturn(false);
     }
 
@@ -221,7 +223,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $value = (object) ['name' => 1, 'location' => 2, 'favouriteColour' => 3];
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Object does not contain required properties', $required);
+        $this->testFailureDispatch(self::NAME, $value, 'Object does not contain required properties', $required);
         $this->validate()->shouldReturn(false);
     }
 
@@ -316,7 +318,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setStrictAdditionalProperties(true);
         $this->setAllowedPropertyNames($allowed);
 
-        $this->testFailureDispatch($value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
+        $this->testFailureDispatch(self::NAME, $value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
         $this->validate()->shouldReturn(false);
     }
 
@@ -341,7 +343,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $regexes = ['#^[f|z]oo$#'];
         $this->setRegexArray($regexes);
 
-        $this->testFailureDispatch($value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
+        $this->testFailureDispatch(self::NAME, $value, 'Some object properties either do not match the names defined in `properties` or match the regular expressions defined in `patterProperties`');
         $this->validate()->shouldReturn(false);
     }
 
@@ -367,13 +369,12 @@ class ObjectConstraintSpec extends ObjectBehavior
 
     function it_should_fail_validation_if_instance_value_does_not_validate_against_schema_dependencies_ex1()
     {
-        $instance = (object)['people' =>
-            (object)[
-                'name'  => 'foo',
-                'age'   => 100,
-                'place' => 'bar'
-            ]
+        $data = (object)[
+            'name'  => 'foo',
+            'age'   => 100,
+            'place' => 'bar'
         ];
+        $instance = (object)['people' => $data];
         $this->setValue($instance);
 
         $schema = (object)['minProperties' => 4];
@@ -382,14 +383,15 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setDependenciesInstanceValidation(true);
         $this->setSchemaDependencies($subSchema);
 
-        $this->testFailureDispatch($instance, 'The object values provided fail to validate against the given schema', $schema);
+        $this->testFailureDispatch('people', $data, 'The object values provided fail to validate against the given schema', $schema);
         $this->validate()->shouldReturn(false);
     }
 
     function it_should_fail_validation_if_instance_value_does_not_validate_against_schema_dependencies_ex2()
     {
+        $data = (object)['foo' => 1, 'bar' => 2];
         $instance = (object)[
-            'foo' => (object)['foo' => 1, 'bar' => 2]
+            'foo' => $data
         ];
         $this->setValue($instance);
 
@@ -399,7 +401,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->setDependenciesInstanceValidation(true);
         $this->setSchemaDependencies($subSchema);
 
-        $this->testFailureDispatch($instance, 'The object values provided fail to validate against the given schema', $schema);
+        $this->testFailureDispatch('foo', $data, 'The object values provided fail to validate against the given schema', $schema);
         $this->validate()->shouldReturn(false);
     }
 
@@ -447,7 +449,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $value = (object)['foo' => 1, 'baz' => 2];
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Object does not contain property dependencies', $allowed);
+        $this->testFailureDispatch(self::NAME, $value, 'Object does not contain property dependencies', $allowed);
         $this->validate()->shouldReturn(false);
     }
 

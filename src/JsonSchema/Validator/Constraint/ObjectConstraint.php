@@ -30,7 +30,7 @@ class ObjectConstraint extends AbstractConstraint
         if (true === $this->nestedSchemaValidation) {
             foreach ($this->value as $value) {
                 if (true !== $this->validateSchema($value)) {
-                    return $this->logFailure('Object contains invalid nested schemas');
+                    return false;
                 }
             }
         }
@@ -44,16 +44,16 @@ class ObjectConstraint extends AbstractConstraint
 
                 // Check that vals are valid schemas
                 if (!$this->validateSchema($value)) {
-                    return $this->logFailure('Object contains values which are invalid schemas', null, $value);
+                    return false;
                 }
             }
         }
 
         // Validate schema `dependencies` value
         if (true === $this->dependenciesSchemaValidation) {
-            foreach ($this->value as $value) {
+            foreach ($this->value as $key => $value) {
                 if (is_array($value)) {
-                    $arrayConstraint = $this->constraintFactory->create('ArrayConstraint', $value, $this->eventDispatcher);
+                    $arrayConstraint = $this->constraintFactory->create('ArrayConstraint', $key, $value, $this->eventDispatcher);
                     $arrayConstraint->setInternalType('string');
                     $arrayConstraint->setMinimumCount(1);
                     if (!$arrayConstraint->validate()) {
@@ -77,7 +77,7 @@ class ObjectConstraint extends AbstractConstraint
                         $schemaData = $schemas[$key];
                         $schema = $this->createRootSchema($schemaData);
                         if (true !== $schema->validateInstanceData($value)) {
-                            return $this->logFailure('The object values provided fail to validate against the given schema', $schemaData);
+                            return $this->logFailure('The object values provided fail to validate against the given schema', $schemaData, $value, $key);
                         }
                     }
                 }

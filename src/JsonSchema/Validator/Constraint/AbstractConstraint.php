@@ -36,6 +36,7 @@ abstract class AbstractConstraint implements ConstraintInterface
     ];
 
     protected $value;
+    protected $name;
     protected $constraintFactory;
     protected $enumValues;
     protected $type;
@@ -43,11 +44,13 @@ abstract class AbstractConstraint implements ConstraintInterface
     protected $validationErrors = [];
 
     public function __construct(
+        $name,
         $value,
         EventDispatcherInterface $dispatcher,
         ConstraintFactoryInterface $factory = null
     ) {
         $this->setValue($value);
+        $this->setName($name);
         $this->setEventDispatcher($dispatcher);
         $this->setConstraintFactory($factory ?: new ConstraintFactory());
     }
@@ -60,6 +63,16 @@ abstract class AbstractConstraint implements ConstraintInterface
     public function getValue()
     {
         return $this->value;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function setConstraintFactory(ConstraintFactoryInterface $factory)
@@ -130,7 +143,7 @@ abstract class AbstractConstraint implements ConstraintInterface
 
     public function createRootSchema($data)
     {
-        return new RootSchema(new SchemaValidator(), $data);
+        return new RootSchema(new SchemaValidator($this->eventDispatcher), $data);
     }
 
     public function validateSchema($data)
@@ -200,9 +213,10 @@ abstract class AbstractConstraint implements ConstraintInterface
         $this->getEventDispatcher()->dispatch('validation.error', new FailureEvent($error));
     }
 
-    public function logFailure($message, $expectation = null, $value = null)
+    public function logFailure($message, $expectation = null, $value = null, $name = null)
     {
         $error = [
+            'name'     => ($name !== null) ? $name : $this->name,
             'value'    => ($value !== null) ? $value : $this->value,
             'message'  => $message,
             'expected' => $expectation

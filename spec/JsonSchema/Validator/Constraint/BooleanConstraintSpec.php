@@ -12,9 +12,11 @@ class BooleanConstraintSpec extends ObjectBehavior
 {
     use HasValidationChecker;
 
+    const NAME = 'Foo';
+
     function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith(true, $dispatcher);
+        $this->beConstructedWith(self::NAME, true, $dispatcher);
     }
 
     function it_is_initializable()
@@ -35,7 +37,7 @@ class BooleanConstraintSpec extends ObjectBehavior
         $this->setValue('Foo');
         $this->shouldNotHaveCorrectType();
 
-        $this->testFailureDispatch('Foo', 'Type is incorrect', 'boolean');
+        $this->testFailureDispatch(self::NAME, 'Foo', 'Type is incorrect', 'boolean');
         $this->validate()->shouldReturn(false);
     }
 }

@@ -17,11 +17,12 @@ class AbstractConstraintSpec extends ObjectBehavior
     use HasValidationChecker;
 
     const VALUE = 'Foo';
+    const NAME  = 'Baz';
 
     function let(EventDispatcher $dispatcher, BufferErrorHandler $handler)
     {
         $this->beAnInstanceOf('spec\JsonSchema\Validator\Constraint\TestableAbstractConstraint');
-        $this->beConstructedWith(self::VALUE, $dispatcher);
+        $this->beConstructedWith(self::NAME, self::VALUE, $dispatcher);
     }
 
     function it_is_initializable()
@@ -33,6 +34,12 @@ class AbstractConstraintSpec extends ObjectBehavior
     {
         $this->setValue(self::VALUE);
         $this->getValue()->shouldReturn(self::VALUE);
+    }
+
+    function it_should_have_mutable_name()
+    {
+        $this->setName(self::NAME);
+        $this->getName()->shouldReturn(self::NAME);
     }
 
     function it_should_allow_easy_creation_of_root_schema_object()
@@ -60,7 +67,7 @@ class AbstractConstraintSpec extends ObjectBehavior
         $this->setEnumValues(['foo']);
         $this->setValue('bar');
 
-        $this->testFailureDispatch('bar', "Value does not match enum array");
+        $this->testFailureDispatch(self::NAME, 'bar', "Value does not match enum array");
         $this->validate()->shouldReturn(false);
     }
 
@@ -101,7 +108,7 @@ class AbstractConstraintSpec extends ObjectBehavior
         $this->setType('object');
         $this->setValue(99.9);
 
-        $this->testFailureDispatch(99.9, "Type is incorrect", 'object');
+        $this->testFailureDispatch(self::NAME, 99.9, "Type is incorrect", 'object');
         $this->validate()->shouldReturn(false);
     }
 
@@ -135,10 +142,12 @@ class AbstractConstraintSpec extends ObjectBehavior
 
     function it_should_emit_no_errors_if_logging_is_disabled()
     {
+        $this->setName('foo');
         $this->setType('object');
         $this->setValue(99.9);
 
         $event = new FailureEvent([
+            'name'  => 'foo',
             'value' => 99.9,
             'message' => 'Type is incorrect',
             'expected' => 'object'

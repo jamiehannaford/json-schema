@@ -10,7 +10,7 @@ class GenericConstraintSpec extends ObjectBehavior
 {
     function let(\stdClass $value, EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith($value, $dispatcher);
+        $this->beConstructedWith('Foo', $value, $dispatcher);
     }
 
     function it_is_initializable()

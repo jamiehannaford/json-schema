@@ -14,9 +14,11 @@ class StringConstraintSpec extends ObjectBehavior
 {
     use HasValidationChecker;
 
+    const NAME = 'Foo';
+
     function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith('Foo', $dispatcher);
+        $this->beConstructedWith(self::NAME, 'bar', $dispatcher);
     }
 
     function it_is_initializable()
@@ -67,7 +69,7 @@ class StringConstraintSpec extends ObjectBehavior
         $this->setRegexValidation(true);
         $this->setValue('#foo');
 
-        $this->testFailureDispatch('#foo', 'Value is not a valid regular expression');
+        $this->testFailureDispatch(self::NAME, '#foo', 'Value is not a valid regular expression');
         $this->validate()->shouldReturn(false);
     }
 
@@ -106,7 +108,7 @@ class StringConstraintSpec extends ObjectBehavior
         $this->setValue('foo');
 
         $allowed = ['string', 'number', 'boolean', 'null', 'object', 'array'];
-        $this->testFailureDispatch('foo', 'Value is not a valid primitive type', $allowed);
+        $this->testFailureDispatch(self::NAME, 'foo', 'Value is not a valid primitive type', $allowed);
         $this->validate()->shouldReturn(false);
     }
 
@@ -122,7 +124,7 @@ class StringConstraintSpec extends ObjectBehavior
         $value = str_repeat('a', 15);
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Value contains more characters than allowed', 10);
+        $this->testFailureDispatch(self::NAME, $value, 'Value contains more characters than allowed', 10);
         $this->validate()->shouldReturn(false);
     }
 
@@ -143,7 +145,7 @@ class StringConstraintSpec extends ObjectBehavior
         $value = str_repeat('a', 15);
         $this->setValue($value);
 
-        $this->testFailureDispatch($value, 'Value does not contain enough characters', 100);
+        $this->testFailureDispatch(self::NAME, $value, 'Value does not contain enough characters', 100);
         $this->validate()->shouldReturn(false);
     }
 
@@ -158,7 +160,7 @@ class StringConstraintSpec extends ObjectBehavior
         $this->setRegexValidation($pattern);
         $this->setValue('bar');
 
-        $this->testFailureDispatch('bar', 'Value does not satisfy regular expression', $pattern);
+        $this->testFailureDispatch(self::NAME, 'bar', 'Value does not satisfy regular expression', $pattern);
         $this->validate()->shouldReturn(false);
     }
 }

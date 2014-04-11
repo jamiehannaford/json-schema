@@ -53,11 +53,6 @@ abstract class AbstractValidator implements ValidatorInterface
         $this->constraintFactory = $factory;
     }
 
-    public function createConstraint($name, $value)
-    {
-        return $this->constraintFactory->create($name, $value, $this->eventDispatcher);
-    }
-
     public function addConstraint($value, $strictnessMode = null)
     {
         $group = new ConstraintGroup($strictnessMode);
@@ -105,5 +100,40 @@ abstract class AbstractValidator implements ValidatorInterface
         }
 
         return true;
+    }
+
+    public function createConstraint($class, $keyword, $value)
+    {
+        return $this->constraintFactory->create($class, $keyword, $value, $this->eventDispatcher);
+    }
+
+    public function createArrayConstraint($keyword, $value)
+    {
+        return $this->createConstraint('ArrayConstraint', $keyword, $value);
+    }
+
+    public function createBoolConstraint($keyword, $value)
+    {
+        return $this->createConstraint('BooleanConstraint', $keyword, $value);
+    }
+
+    public function createGenericConstraint($keyword, $value)
+    {
+        return $this->createConstraint('GenericConstraint', $keyword, $value);
+    }
+
+    public function createNumberConstraint($keyword, $value)
+    {
+        return $this->createConstraint('NumberConstraint', $keyword, $value);
+    }
+
+    public function createObjectConstraint($keyword, $value)
+    {
+        return $this->createConstraint('ObjectConstraint', $keyword, $value);
+    }
+
+    public function createStringConstraint($keyword, $value)
+    {
+        return $this->createConstraint('StringConstraint', $keyword, $value);
     }
 }

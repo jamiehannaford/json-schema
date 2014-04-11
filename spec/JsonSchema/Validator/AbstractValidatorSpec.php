@@ -6,6 +6,8 @@ use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\AbstractValidator;
 use JsonSchema\Validator\Constraint\ArrayConstraint;
 use JsonSchema\Validator\Constraint\BooleanConstraint;
+use JsonSchema\Validator\Constraint\ConstraintFactory;
+use JsonSchema\Validator\Constraint\GenericConstraint;
 use JsonSchema\Validator\Constraint\NumberConstraint;
 use JsonSchema\Validator\Constraint\ObjectConstraint;
 use JsonSchema\Validator\Constraint\StringConstraint;
@@ -46,7 +48,7 @@ class AbstractValidatorSpec extends ObjectBehavior
 
     function it_should_provide_easy_instantiation_of_constraint_classes()
     {
-         $this->createConstraint('StringConstraint', 'Foo')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
+         $this->createConstraint('StringConstraint', 'foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ConstraintInterface');
     }
 
     function it_should_support_constraint_grouping(ObjectConstraint $constraint)
@@ -83,6 +85,48 @@ class AbstractValidatorSpec extends ObjectBehavior
         $group->validate()->shouldBeCalled();
 
         $this->validate();
+    }
+
+    function it_should_support_array_constraint_creation(ConstraintFactory $factory, ArrayConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('ArrayConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createArrayConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ArrayConstraint');
+    }
+
+    function it_should_support_bool_constraint_creation(ConstraintFactory $factory, BooleanConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('BooleanConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createBoolConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\BooleanConstraint');
+    }
+
+    function it_should_support_generic_constraint_creation(ConstraintFactory $factory, GenericConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('GenericConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createGenericConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\GenericConstraint');
+    }
+
+    function it_should_support_number_constraint_creation(ConstraintFactory $factory, NumberConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('NumberConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createNumberConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\NumberConstraint');
+    }
+
+    function it_should_support_object_constraint_creation(ConstraintFactory $factory, ObjectConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('ObjectConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createObjectConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\ObjectConstraint');
+    }
+
+    function it_should_support_string_constraint_creation(ConstraintFactory $factory, StringConstraint $constraint, EventDispatcher $dispatcher)
+    {
+        $factory->create('StringConstraint', 'foo', 'bar', $dispatcher)->willReturn($constraint);
+        $this->setConstraintFactory($factory);
+        $this->createStringConstraint('foo', 'bar')->shouldReturnAnInstanceOf('JsonSchema\Validator\Constraint\StringConstraint');
     }
 }
 

@@ -12,9 +12,11 @@ class NumberConstraintSpec extends ObjectBehavior
 {
     use HasValidationChecker;
 
+    const NAME = 'Foo';
+    
     function let(EventDispatcher $dispatcher)
     {
-        $this->beConstructedWith(101, $dispatcher);
+        $this->beConstructedWith(self::NAME, 101, $dispatcher);
     }
 
     function it_is_initializable()
@@ -50,7 +52,7 @@ class NumberConstraintSpec extends ObjectBehavior
 
         $this->shouldNotHaveCorrectType();
 
-        $this->testFailureDispatch('Foo', 'Type is incorrect', 'numeric');
+        $this->testFailureDispatch(self::NAME, 'Foo', 'Type is incorrect', 'numeric');
         $this->validateType()->shouldReturn(false);
     }
 
@@ -70,7 +72,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setLowerBound(100);
         $this->setValue(80);
 
-        $this->testFailureDispatch(80, 'Number must be greater than or equal to the lower bound', 100);
+        $this->testFailureDispatch(self::NAME, 80, 'Number must be greater than or equal to the lower bound', 100);
         $this->validate()->shouldReturn(false);
     }
 
@@ -80,7 +82,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setExclusive(true);
         $this->setValue(5);
 
-        $this->testFailureDispatch(5, 'Number must be greater than the lower bound', 5);
+        $this->testFailureDispatch(self::NAME, 5, 'Number must be greater than the lower bound', 5);
         $this->validate()->shouldReturn(false);
     }
 
@@ -89,7 +91,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setHigherBound(100);
         $this->setValue(180);
 
-        $this->testFailureDispatch(180, 'Number must be less than or equal to the higher bound', 100);
+        $this->testFailureDispatch(self::NAME, 180, 'Number must be less than or equal to the higher bound', 100);
         $this->validate()->shouldReturn(false);
     }
 
@@ -99,7 +101,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setExclusive(true);
         $this->setValue(5);
 
-        $this->testFailureDispatch(5, 'Number must be less than the higher bound', 5);
+        $this->testFailureDispatch(self::NAME, 5, 'Number must be less than the higher bound', 5);
         $this->validate()->shouldReturn(false);
     }
 
@@ -116,7 +118,7 @@ class NumberConstraintSpec extends ObjectBehavior
         $this->setMultipleOf(3);
 
         $this->setValue(55);
-        $this->testFailureDispatch(55, 'Number is not a valid multiple', 3);
+        $this->testFailureDispatch(self::NAME, 55, 'Number is not a valid multiple', 3);
         $this->validate()->shouldReturn(false);
 
         $this->setValue(300);

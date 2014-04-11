@@ -54,8 +54,8 @@ trait HasValidationChecker
     protected function addConstraintPromises(ConstraintFactoryInterface $factory, ConstraintInterface $constraint)
     {
         $constraintName = $this->getCollaboratorName($constraint);
-        $factory->create($constraintName, Argument::any(), Argument::any())->shouldBeCalled();
-        $factory->create($constraintName, Argument::any(), Argument::any())->willReturn($constraint);
+        $factory->create($constraintName, Argument::cetera())->shouldBeCalled();
+        $factory->create($constraintName, Argument::cetera())->willReturn($constraint);
     }
 
     protected function testValidationPrediction($name, $constraint, $value = 'Foo')
@@ -74,9 +74,10 @@ trait HasValidationChecker
         $this->addKeywordConstraints($name, $value);
     }
 
-    protected function testFailureDispatch($value, $message, $expected = null)
+    protected function testFailureDispatch($name, $value, $message, $expected = null)
     {
         $event = new FailureEvent([
+            'name'  => $name,
             'value' => $value,
             'message' => $message,
             'expected' => $expected

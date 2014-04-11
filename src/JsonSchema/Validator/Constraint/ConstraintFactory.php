@@ -6,7 +6,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ConstraintFactory implements ConstraintFactoryInterface
 {
-    public function create($class, $value, EventDispatcherInterface $dispatcher)
+    public function create($class, $name, $value, EventDispatcherInterface $dispatcher)
     {
         $class = $this->normalizeClassName($class);
 
@@ -14,7 +14,7 @@ class ConstraintFactory implements ConstraintFactoryInterface
             throw new \RuntimeException(sprintf("%s class does not exist", $class));
         }
 
-        $constraint = new $class($value, $dispatcher);
+        $constraint = new $class($name, $value, $dispatcher);
 
         if (!$constraint instanceof ConstraintInterface) {
             throw new \InvalidArgumentException(sprintf(
