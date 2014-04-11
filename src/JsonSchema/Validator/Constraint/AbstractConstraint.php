@@ -2,20 +2,19 @@
 
 namespace JsonSchema\Validator\Constraint;
 
+use JsonSchema\Enum\LogType;
 use JsonSchema\HasEventDispatcherTrait;
 use JsonSchema\Schema\RootSchema;
-use JsonSchema\Schema\SchemaInterface;
-use JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface;
 use JsonSchema\Validator\ErrorHandler\HasErrorHandlerTrait;
 use JsonSchema\Validator\FailureEvent;
 use JsonSchema\Validator\SchemaValidator;
-use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractConstraint implements ConstraintInterface
 {
     use HasEventDispatcherTrait, HasErrorHandlerTrait;
+
+    const TYPE = '';
 
     private $typeFunctions = [
         'string'  => 'is_string',
@@ -31,7 +30,7 @@ abstract class AbstractConstraint implements ConstraintInterface
         'null'    => 'is_null'
     ];
 
-    private $jsonPrimitiveType = [
+    protected $jsonPrimitiveType = [
         'string', 'number', 'boolean',
         'null', 'object', 'array'
     ];
@@ -40,7 +39,8 @@ abstract class AbstractConstraint implements ConstraintInterface
     protected $constraintFactory;
     protected $enumValues;
     protected $type;
-    protected $logging;
+    protected $logType = LogType::EMITTING;
+    protected $validationErrors = [];
 
     public function __construct(
         $value,
@@ -103,7 +103,7 @@ abstract class AbstractConstraint implements ConstraintInterface
             return true;
         }
 
-        $this->logFailure('Type is incorrect');
+        $this->logFailure('Type is incorrect', static::TYPE);
 
         return false;
     }
@@ -130,19 +130,20 @@ abstract class AbstractConstraint implements ConstraintInterface
 
     public function createRootSchema($data)
     {
-        return new RootSchema(new SchemaValidator($this->eventDispatcher), $data);
+        return new RootSchema(new SchemaValidator(), $data);
     }
 
     public function validateSchema($data)
     {
         try {
-            $schema = $this->createRootSchema($data);
-            if (!$schema->isValid()) {
+            if (!$this->createRootSchema($data)->isValid()) {
                 return false;
             }
         } catch (\Exception $e) {
             return false;
         }
+
+        return true;
     }
 
     public function validatePrimitiveType($value)
@@ -194,26 +195,49 @@ abstract class AbstractConstraint implements ConstraintInterface
         return $this->type;
     }
 
+    public function dispatchError(array $error)
+    {
+        $this->getEventDispatcher()->dispatch('validation.error', new FailureEvent($error));
+    }
+
     public function logFailure($message, $expectation = null, $value = null)
     {
-        if ($this->logging !== false) {
-            $this->getEventDispatcher()->dispatch('validation.error', new FailureEvent([
-                'value'    => ($value !== null) ? $value : $this->value,
-                'message'  => $message,
-                'expected' => $expectation
-            ]));
+        $error = [
+            'value'    => ($value !== null) ? $value : $this->value,
+            'message'  => $message,
+            'expected' => $expectation
+        ];
+
+        if ($this->logType == LogType::EMITTING) {
+            $this->dispatchError($error);
+        } elseif ($this->logType == LogType::INTERNAL) {
+            $this->validationErrors[] = $error;
         }
 
         return false;
     }
 
-    public function setLogging($choice)
+    public function setLogType($type)
     {
-        $this->logging = (bool) $choice;
+        $this->logType = $type;
     }
 
-    public function getLogging()
+    public function getLogType()
     {
-        return $this->logging;
+        return $this->logType;
+    }
+
+    public function getValidationErrors()
+    {
+        return $this->validationErrors;
+    }
+
+    public function flushInternalErrors()
+    {
+        foreach ($this->validationErrors as $key => $error) {
+            // despatch and remove
+            $this->dispatchError($error);
+            unset($this->validationErrors[$key]);
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace JsonSchema\Validator;
 
+use JsonSchema\Enum\LogType;
 use JsonSchema\Enum\StrictnessMode;
 use JsonSchema\Validator\Constraint\ConstraintInterface;
 
@@ -48,6 +49,10 @@ class ConstraintGroup
         $successes = $failures = 0;
 
         foreach ($this->constraints as $constraint) {
+            if ($this->strictnessMode === StrictnessMode::ANY) {
+                $constraint->setLogType(LogType::INTERNAL);
+            }
+
             if (true === $constraint->validate()) {
                 $successes += 1;
             } else {
@@ -56,9 +61,18 @@ class ConstraintGroup
         }
 
         if ($this->strictnessMode === StrictnessMode::ANY) {
-            return ($successes > 0) ? true : false;
+            $result = ($successes > 0) ? true : false;
         } else {
-            return ($failures === 0) ? true : false;
+            $result = ($failures === 0) ? true : false;
         }
+
+        // Re-add temporary errors that were stored internally to each constrain to main handler
+        if (false === $result && $this->strictnessMode === StrictnessMode::ANY) {
+            foreach ($this->constraints as $constraint) {
+                $constraint->flushInternalErrors();
+            }
+        }
+
+        return $result;
     }
 }

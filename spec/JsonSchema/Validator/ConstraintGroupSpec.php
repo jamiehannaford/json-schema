@@ -9,22 +9,14 @@ use JsonSchema\Validator\Constraint\BooleanConstraint;
 use JsonSchema\Validator\Constraint\NumberConstraint;
 use JsonSchema\Validator\Constraint\ObjectConstraint;
 use JsonSchema\Validator\Constraint\StringConstraint;
+use JsonSchema\Validator\ErrorHandler\BufferErrorHandler;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ConstraintGroupSpec extends ObjectBehavior
 {
-    public function getMatchers()
-    {
-        return [
-            'contain' => function ($subject, $key) {
-                    return array_search($key, $subject);
-                },
-            'haveCount' => function ($subject, $num) {
-                    return count($subject) === $num;
-                }
-        ];
-    }
+    use HasValidationChecker;
 
     function it_is_initializable()
     {
@@ -133,5 +125,30 @@ class ConstraintGroupSpec extends ObjectBehavior
         $this->setStrictnessMode(StrictnessMode::ANY);
 
         $this->validate()->shouldReturn(false);
+    }
+
+    function it_should_not_emit_every_error_if_strictness_mode_is_any_and_at_least_1_constraint_passes(
+        ObjectConstraint $object,
+        StringConstraint $string,
+        EventDispatcher $dispatcher,
+        BufferErrorHandler $handler
+    )
+    {
+        $dispatcher->addListener('validation.error', [$handler, 'receiveError']);
+        $dispatcher->dispatch(Argument::any(), Argument::any())->shouldNotBeCalled();
+
+        $object->validateType()->willReturn(false);
+        $object->validateConstraint()->willReturn(false);
+        $object->setEventDispatcher($dispatcher);
+        $this->addConstraint($object);
+
+        $string->validateType()->willReturn(true);
+        $string->validateConstraint()->willReturn(true);
+        $object->setEventDispatcher($dispatcher);
+        $this->addConstraint($string);
+
+        $this->setStrictnessMode(StrictnessMode::ANY);
+
+        var_dump($handler->getWrappedObject());die;
     }
 }

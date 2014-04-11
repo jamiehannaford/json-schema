@@ -17,17 +17,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class AbstractValidatorSpec extends ObjectBehavior
 {
-    public function getMatchers()
-    {
-        return [
-            'contain' => function ($subject, $key) {
-                    return array_search($key, $subject);
-                },
-            'haveCount' => function ($subject, $num) {
-                    return count($subject) === $num;
-                }
-        ];
-    }
+    use HasValidationChecker;
 
     function let(EventDispatcher $dispatcher)
     {
