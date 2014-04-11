@@ -18,7 +18,10 @@ trait HasErrorHandlerTrait
             if (isset($listener[0])
                 && $listener[0] instanceof ErrorHandlerInterface
             ) {
-                $errors[] = $listener[0]->getErrors();
+                $error = $listener[0]->getErrors();
+                if (!empty($error)) {
+                    $errors[] = $error;
+                }
             }
         }
 
