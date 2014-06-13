@@ -259,7 +259,7 @@ class ObjectConstraintSpec extends ObjectBehavior
         $this->getAllowedPropertyNames()->shouldReturn($names);
     }
 
-    function it_should_suppoert_allowed_property_names_as_object()
+    function it_should_support_allowed_property_names_as_object()
     {
         $properties = (object)['foo' => (object)['title' => 'bar']];
         $this->setAllowedPropertyNames($properties);

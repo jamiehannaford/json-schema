@@ -27,8 +27,9 @@ class ObjectConstraint extends AbstractConstraint
             return $this->logFailure('Object is not a valid schema');
         }
 
+        // Recursively check schemas
         if (true === $this->nestedSchemaValidation) {
-            foreach ($this->value as $value) {
+            foreach ($this->value as $key => $value) {
                 if (true !== $this->validateSchema($value)) {
                     return false;
                 }
@@ -59,8 +60,10 @@ class ObjectConstraint extends AbstractConstraint
                     if (!$arrayConstraint->validate()) {
                         return false;
                     }
-                } elseif (is_object($value) && !$this->validateSchema($value)) {
-                    return $this->logFailure('Objects provided as values must be valid schemas');
+                } elseif (is_object($value)) {
+                    if (!$this->validateSchema($value)) {
+                        return $this->logFailure('Objects provided as values must be valid schemas');
+                    }
                 } else {
                     return $this->logFailure('Object values need to be either objects or array', null, $value);
                 }
