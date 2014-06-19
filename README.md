@@ -19,6 +19,8 @@ require 'vendor/autoload.php';
 
 # Getting Started
 
+## Step 1. Set up error handling
+
 When you validate instance data, the validator will iterate over your structure and check for each element's validity. If validation fails, an error is generated with details of the failure; how these errors are handled is completely up to you. The default strategy is to buffer them; which means that they are collected by the handler in temporary storage until a time where you need to access them. You can also write your own error handler class and inject it in; the only condition is that it implements [`JsonSchema\Validator\ErrorHandler\ErrorHandlerInterface`](/src/JsonSchema/Validator/ErrorHandler/ErrorHandlerInterface.php).
 
 The responsibility of publishing these errors lies with the EventDispatcher. We use Symfony's by default. So to begin, you need to set up your error handler and attach it as a subscriber to your dispatcher:
@@ -34,6 +36,8 @@ $handler    = new BufferErrorHandler();
 $dispatcher->addListener('validation.error', [$handler, 'receiveError']);
 ```
 
+## Step 2. Configure your validator
+
 Once you've configured error handling, you're ready to initialize the validator:
 
 ```php
@@ -44,6 +48,8 @@ You inject your error dispatcher into the validator so that it knows how to reac
 
 The validator, as you've probably guessed, is responsible to validating data structures. There's one final step: now you have your error dispatcher and validator, you tie everything together:
 
+## Step 3. Tie everything together 
+
 ```php
 $jsonSchema = '{"type": "object", "minProperties": 3}';
 
@@ -52,6 +58,8 @@ $schema = $parser->parse($validator);
 ```
 
 Cool, so we've set everything up and have represented the schema into its own object. This `$schema` object fully represents the `$jsonSchema` string and has the ability to validate any incoming data structures you want to validate. It also knows what to do when a validation failure occurs.
+
+## Step 4. Validate!
 
 So, let's validate something:
 
